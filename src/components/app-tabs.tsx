@@ -28,13 +28,13 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="bookings">
+      {/* <NativeTabs.Trigger name="bookings">
         <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/bookings.png')}
           renderingMode="template"
         />
-      </NativeTabs.Trigger>
+      </NativeTabs.Trigger> */}
     </NativeTabs>
   );
 }

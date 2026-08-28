@@ -1,10 +1,44 @@
+import BottomNav from '@/components/BottomNav';
+import CarCategories from '@/components/CarCategories';
+import HomeGreeting from '@/components/HomeGreeting';
 import HomeHeader from '@/components/HomeHeader';
-import { StyleSheet, View } from 'react-native';
+import NextTripCard from '@/components/NextTripCard';
+import PopularCars from '@/components/PopularCars';
+import PopularCarsHeader from '@/components/PopularCarsHeader';
+import SearchCarCard from '@/components/SearchCarCard';
+
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <HomeHeader />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        <HomeHeader />
+        <HomeGreeting />
+        <SearchCarCard />
+        <NextTripCard />
+
+        {/* Popular Near You */}
+        <View style={styles.popularHeaderSection}>
+          <PopularCarsHeader />
+        </View>
+
+        {/* Car Categories */}
+        <View style={styles.categoriesSection}>
+          <CarCategories />
+        </View>
+
+        {/* Popular Cars */}
+        <View style={styles.carsSection}>
+          <PopularCars />
+        </View>
+      </ScrollView>
+
+      {/* Fixed Bottom Navigation */}
+      <BottomNav />
     </View>
   );
 }
@@ -12,6 +46,22 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#f3f7e8',
+  },
+
+  content: {
+    paddingBottom: 24,
+  },
+
+  popularHeaderSection: {
+    marginTop: 16,
+  },
+
+  categoriesSection: {
+    marginTop: 12,
+  },
+
+  carsSection: {
+    marginTop: 16,
   },
 });
