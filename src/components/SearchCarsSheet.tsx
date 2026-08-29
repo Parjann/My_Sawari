@@ -1,14 +1,17 @@
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
+import DateSheet from './DateSheet';
+import DrivingOptionsSheet from './DrivingOptionsSheet';
 import LocationSheet from './LocationSheet';
+import TimeSheet from './TimeSheet';
 
 interface SearchCarsSheetProps {
   visible: boolean;
@@ -19,13 +22,48 @@ export default function SearchCarsSheet({
   visible,
   onClose,
 }: SearchCarsSheetProps) {
+  // Controls LocationSheet visibility
   const [isLocationSheetVisible, setIsLocationSheetVisible] =
     useState(false);
 
-  const [selectedLocation, setSelectedLocation] = useState('Guwahati');
+  // Controls DateSheet visibility
+  const [isDateSheetVisible, setIsDateSheetVisible] =
+    useState(false);
+
+  // Controls TimeSheet visibility
+  const [isTimeSheetVisible, setIsTimeSheetVisible] =
+    useState(false);
+
+  // Stores the selected pickup location
+  const [selectedLocation, setSelectedLocation] =
+    useState('Guwahati');
+
+  // Stores the selected date range as text
+  const [selectedDates, setSelectedDates] =
+    useState('17 Aug – 20 Aug');
+
+  // Stores the selected pickup and return times
+  const [selectedTimes, setSelectedTimes] =
+    useState('10:00 AM – 10:00 AM');
+
+  // Driving option
+  const [selectedDrivingOption, setSelectedDrivingOption] =
+  useState('Self Drive');
+
+  const [isDrivingOptionSheetVisible, setIsDrivingOptionSheetVisible] =
+    useState(false);
+
+  // Converts a Date object into a readable format
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+    });
+  };
 
   return (
     <>
+      {/* Main Search Cars Sheet */}
       <Modal
         visible={visible}
         transparent
@@ -42,14 +80,24 @@ export default function SearchCarsSheet({
             {/* Header */}
             <View style={styles.header}>
               <View>
-                <Text style={styles.title}>Where do you want to go?</Text>
+                <Text style={styles.title}>
+                  Where do you want to go?
+                </Text>
+
                 <Text style={styles.subtitle}>
                   Find the right car for your journey.
                 </Text>
               </View>
 
-              <Pressable style={styles.closeButton} onPress={onClose}>
-                <Feather name="x" size={22} color="#101828" />
+              <Pressable
+                style={styles.closeButton}
+                onPress={onClose}
+              >
+                <Feather
+                  name="x"
+                  size={22}
+                  color="#101828"
+                />
               </Pressable>
             </View>
 
@@ -60,7 +108,9 @@ export default function SearchCarsSheet({
                 icon="map-pin"
                 label="Pickup location"
                 value={selectedLocation}
-                onPress={() => setIsLocationSheetVisible(true)}
+                onPress={() =>
+                  setIsLocationSheetVisible(true)
+                }
               />
 
               <View style={styles.divider} />
@@ -69,7 +119,10 @@ export default function SearchCarsSheet({
               <SearchRow
                 icon="calendar"
                 label="Dates"
-                value="17 Aug – 20 Aug"
+                value={selectedDates}
+                onPress={() =>
+                  setIsDateSheetVisible(true)
+                }
               />
 
               <View style={styles.divider} />
@@ -78,7 +131,10 @@ export default function SearchCarsSheet({
               <SearchRow
                 icon="clock"
                 label="Time"
-                value="10:00 AM – 10:00 AM"
+                value={selectedTimes}
+                onPress={() =>
+                  setIsTimeSheetVisible(true)
+                }
               />
 
               <View style={styles.divider} />
@@ -87,7 +143,10 @@ export default function SearchCarsSheet({
               <SearchRow
                 icon="circle"
                 label="Driving Option"
-                value="Self Drive"
+                value={selectedDrivingOption}
+                onPress={() =>
+                  setIsDrivingOptionSheetVisible(true)
+                }
               />
 
               <View style={styles.divider} />
@@ -95,28 +154,81 @@ export default function SearchCarsSheet({
               {/* No driver charges */}
               <View style={styles.noDriverCard}>
                 <View style={styles.greenDot} />
-                <Text style={styles.noDriverText}>No driver charges</Text>
+
+                <Text style={styles.noDriverText}>
+                  No driver charges
+                </Text>
               </View>
             </View>
 
             {/* Bottom Button */}
             <View style={styles.bottomSection}>
               <Pressable style={styles.searchButton}>
-                <Text style={styles.searchButtonText}>Search cars</Text>
-                <Feather name="arrow-right" size={21} color="#101828" />
+                <Text style={styles.searchButtonText}>
+                  Search cars
+                </Text>
+
+                <Feather
+                  name="arrow-right"
+                  size={21}
+                  color="#101828"
+                />
               </Pressable>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* Pickup Location Sheet */}
+      {/* Location Sheet */}
       <LocationSheet
         visible={isLocationSheetVisible}
-        onClose={() => setIsLocationSheetVisible(false)}
+        onClose={() =>
+          setIsLocationSheetVisible(false)
+        }
         onSelectLocation={(location) => {
           setSelectedLocation(location);
           setIsLocationSheetVisible(false);
+        }}
+      />
+
+      {/* Date Sheet */}
+      <DateSheet
+        visible={isDateSheetVisible}
+        onClose={() =>
+          setIsDateSheetVisible(false)
+        }
+        onApplyDates={(startDate, endDate) => {
+          // Convert Date objects into a string before storing them
+          const formattedDates = `${formatDate(
+            startDate
+          )} – ${formatDate(endDate)}`;
+
+          setSelectedDates(formattedDates);
+        }}
+      />
+
+      {/* Time Sheet */}
+      <TimeSheet
+        visible={isTimeSheetVisible}
+        onClose={() =>
+          setIsTimeSheetVisible(false)
+        }
+        onApplyTimes={(pickupTime, returnTime) => {
+          setSelectedTimes(
+            `${pickupTime} – ${returnTime}`
+          );
+        }}
+      />
+
+      {/* Driving Option Sheet */}
+      <DrivingOptionsSheet
+        visible={isDrivingOptionSheetVisible}
+        onClose={() =>
+          setIsDrivingOptionSheetVisible(false)
+        }
+        onConfirmOption={(option) => {
+          setSelectedDrivingOption(option);
+          setIsDrivingOptionSheetVisible(false);
         }}
       />
     </>
@@ -142,14 +254,27 @@ function SearchRow({
       onPress={onPress}
       disabled={!onPress}
     >
-      <Feather name={icon} size={24} color="#101828" />
+      <Feather
+        name={icon}
+        size={24}
+        color="#101828"
+      />
 
       <View style={styles.rowText}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={styles.rowValue}>{value}</Text>
+        <Text style={styles.rowLabel}>
+          {label}
+        </Text>
+
+        <Text style={styles.rowValue}>
+          {value}
+        </Text>
       </View>
 
-      <Feather name="chevron-right" size={24} color="#6F7280" />
+      <Feather
+        name="chevron-right"
+        size={24}
+        color="#6F7280"
+      />
     </Pressable>
   );
 }
