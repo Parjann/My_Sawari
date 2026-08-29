@@ -1,7 +1,11 @@
 import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-export default function SearchCarCard() {
+interface SearchCarCardProps {
+  onPress: () => void;
+}
+
+export default function SearchCarCard({ onPress }: SearchCarCardProps) {
   return (
     <View style={styles.card}>
       {/* Pickup + Driving option */}
@@ -12,7 +16,7 @@ export default function SearchCarCard() {
             <Text style={styles.pickupText}>Pickup</Text>
           </View>
 
-          <Text style={styles.location}>Bikaner</Text>
+          <Text style={styles.location}>Guwahati</Text>
         </View>
 
         <View style={styles.selfDriveBadge}>
@@ -37,7 +41,7 @@ export default function SearchCarCard() {
       <View style={styles.divider} />
 
       {/* Search */}
-      <Pressable style={styles.searchRow}>
+      <Pressable style={styles.searchRow} onPress={onPress}>
         <Text style={styles.searchText}>Search cars</Text>
 
         <View style={styles.arrowButton}>

@@ -6,10 +6,14 @@ import NextTripCard from '@/components/NextTripCard';
 import PopularCars from '@/components/PopularCars';
 import PopularCarsHeader from '@/components/PopularCarsHeader';
 import SearchCarCard from '@/components/SearchCarCard';
+import SearchCarsSheet from '@/components/SearchCarsSheet';
 
+import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function HomeScreen() {
+  const [isSearchSheetVisible, setIsSearchSheetVisible] = useState(false);
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -17,8 +21,11 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
       >
         <HomeHeader />
+
         <HomeGreeting />
-        <SearchCarCard />
+
+        <SearchCarCard onPress={() => setIsSearchSheetVisible(true)} />
+
         <NextTripCard />
 
         {/* Popular Near You */}
@@ -37,7 +44,11 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Fixed Bottom Navigation */}
+      <SearchCarsSheet
+        visible={isSearchSheetVisible}
+        onClose={() => setIsSearchSheetVisible(false)}
+      />
+      
       <BottomNav />
     </View>
   );
@@ -46,7 +57,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f7e8',
+    backgroundColor: '#F3F7E8',
   },
 
   content: {
