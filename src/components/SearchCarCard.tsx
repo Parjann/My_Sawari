@@ -1,11 +1,22 @@
 import { Feather } from '@expo/vector-icons';
+
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface SearchCarCardProps {
   onPress: () => void;
+  location: string;
+  dates: string;
+  time: string;
+  drivingOption: string;
 }
 
-export default function SearchCarCard({ onPress }: SearchCarCardProps) {
+export default function SearchCarCard({
+  onPress,
+  location,
+  dates,
+  time,
+  drivingOption,
+}: SearchCarCardProps) {
   return (
     <View style={styles.card}>
       {/* Pickup + Driving option */}
@@ -16,11 +27,13 @@ export default function SearchCarCard({ onPress }: SearchCarCardProps) {
             <Text style={styles.pickupText}>Pickup</Text>
           </View>
 
-          <Text style={styles.location}>Guwahati</Text>
+          <Text style={styles.location}>{location}</Text>
         </View>
 
-        <View style={styles.selfDriveBadge}>
-          <Text style={styles.selfDriveText}>Self Drive</Text>
+        <View style={styles.drivingOptionBadge}>
+          <Text style={styles.drivingOptionText}>
+            {drivingOption}
+          </Text>
         </View>
       </View>
 
@@ -28,12 +41,12 @@ export default function SearchCarCard({ onPress }: SearchCarCardProps) {
       <View style={styles.dateTimeRow}>
         <View style={styles.infoItem}>
           <Feather name="calendar" size={18} color="#6F7280" />
-          <Text style={styles.infoText}>17 Aug — 20 Aug</Text>
+          <Text style={styles.infoText}>{dates}</Text>
         </View>
 
         <View style={styles.infoItem}>
           <Feather name="clock" size={18} color="#6F7280" />
-          <Text style={styles.infoText}>10:00 AM</Text>
+          <Text style={styles.infoText}>{time}</Text>
         </View>
       </View>
 
@@ -45,7 +58,11 @@ export default function SearchCarCard({ onPress }: SearchCarCardProps) {
         <Text style={styles.searchText}>Search cars</Text>
 
         <View style={styles.arrowButton}>
-          <Feather name="arrow-right" size={22} color="#101828" />
+          <Feather
+            name="arrow-right"
+            size={22}
+            color="#101828"
+          />
         </View>
       </Pressable>
     </View>
@@ -92,14 +109,14 @@ const styles = StyleSheet.create({
     color: '#101828',
   },
 
-  selfDriveBadge: {
+  drivingOptionBadge: {
     paddingVertical: 4,
     paddingHorizontal: 12,
     backgroundColor: '#B8F23A',
     borderRadius: 16,
   },
 
-  selfDriveText: {
+  drivingOptionText: {
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600',
@@ -117,6 +134,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexShrink: 1,
   },
 
   infoText: {
@@ -125,6 +143,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     letterSpacing: -0.16,
     color: '#101828',
+    flexShrink: 1,
   },
 
   divider: {

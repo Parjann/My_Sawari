@@ -13,14 +13,26 @@ import DrivingOptionsSheet from './DrivingOptionsSheet';
 import LocationSheet from './LocationSheet';
 import TimeSheet from './TimeSheet';
 
+// This is the complete data collected from the search form
+export interface SearchData {
+  location: string;
+  dates: string;
+  times: string;
+  drivingOption: string;
+}
+
 interface SearchCarsSheetProps {
   visible: boolean;
   onClose: () => void;
+
+  // Sends all selected search data to the parent screen
+  onSearch: (searchData: SearchData) => void;
 }
 
 export default function SearchCarsSheet({
   visible,
   onClose,
+  onSearch,
 }: SearchCarsSheetProps) {
   // Controls LocationSheet visibility
   const [isLocationSheetVisible, setIsLocationSheetVisible] =
@@ -34,11 +46,17 @@ export default function SearchCarsSheet({
   const [isTimeSheetVisible, setIsTimeSheetVisible] =
     useState(false);
 
+  // Controls DrivingOptionSheet visibility
+  const [
+    isDrivingOptionSheetVisible,
+    setIsDrivingOptionSheetVisible,
+  ] = useState(false);
+
   // Stores the selected pickup location
   const [selectedLocation, setSelectedLocation] =
     useState('Guwahati');
 
-  // Stores the selected date range as text
+  // Stores the selected date range
   const [selectedDates, setSelectedDates] =
     useState('17 Aug – 20 Aug');
 
@@ -46,12 +64,9 @@ export default function SearchCarsSheet({
   const [selectedTimes, setSelectedTimes] =
     useState('10:00 AM – 10:00 AM');
 
-  // Driving option
+  // Stores the selected driving option
   const [selectedDrivingOption, setSelectedDrivingOption] =
-  useState('Self Drive');
-
-  const [isDrivingOptionSheetVisible, setIsDrivingOptionSheetVisible] =
-    useState(false);
+    useState('Self Drive');
 
   // Converts a Date object into a readable format
   const formatDate = (date: Date) => {
@@ -59,6 +74,22 @@ export default function SearchCarsSheet({
       day: 'numeric',
       month: 'short',
     });
+  };
+
+  // Runs when the user presses Search Cars
+  const handleSearch = () => {
+    const searchData: SearchData = {
+      location: selectedLocation,
+      dates: selectedDates,
+      times: selectedTimes,
+      drivingOption: selectedDrivingOption,
+    };
+
+    // Send the selected data to the parent screen
+    onSearch(searchData);
+
+    // Close this sheet
+    onClose();
   };
 
   return (
@@ -151,19 +182,31 @@ export default function SearchCarsSheet({
 
               <View style={styles.divider} />
 
-              {/* No driver charges */}
+              {/* Information based on selected driving option */}
               <View style={styles.noDriverCard}>
-                <View style={styles.greenDot} />
+                <View
+                  style={[
+                    styles.statusDot,
+                    selectedDrivingOption === 'Self Drive'
+                      ? styles.greenDot
+                      : styles.blueDot,
+                  ]}
+                />
 
                 <Text style={styles.noDriverText}>
-                  No driver charges
+                  {selectedDrivingOption === 'Self Drive'
+                    ? 'No driver charges'
+                    : 'Driver charges apply'}
                 </Text>
               </View>
             </View>
 
             {/* Bottom Button */}
             <View style={styles.bottomSection}>
-              <Pressable style={styles.searchButton}>
+              <Pressable
+                style={styles.searchButton}
+                onPress={handleSearch}
+              >
                 <Text style={styles.searchButtonText}>
                   Search cars
                 </Text>
@@ -198,12 +241,12 @@ export default function SearchCarsSheet({
           setIsDateSheetVisible(false)
         }
         onApplyDates={(startDate, endDate) => {
-          // Convert Date objects into a string before storing them
           const formattedDates = `${formatDate(
             startDate
           )} – ${formatDate(endDate)}`;
 
           setSelectedDates(formattedDates);
+          setIsDateSheetVisible(false);
         }}
       />
 
@@ -217,6 +260,8 @@ export default function SearchCarsSheet({
           setSelectedTimes(
             `${pickupTime} – ${returnTime}`
           );
+
+          setIsTimeSheetVisible(false);
         }}
       />
 
@@ -388,11 +433,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
 
-  greenDot: {
+  statusDot: {
     width: 8,
     height: 8,
     borderRadius: 10,
+  },
+
+  greenDot: {
     backgroundColor: '#2E9B62',
+  },
+
+  blueDot: {
+    backgroundColor: '#4A90E2',
   },
 
   noDriverText: {
