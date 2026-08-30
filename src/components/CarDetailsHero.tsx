@@ -1,5 +1,4 @@
 import { Feather } from '@expo/vector-icons';
-
 import {
   Image,
   ImageSourcePropType,
@@ -25,10 +24,10 @@ export default function CarDetailsHero({
       <Image
         source={image}
         style={styles.image}
-        resizeMode="contain"
+        resizeMode="cover"
       />
 
-      {/* Floating Buttons */}
+      {/* Floating Actions */}
       <View style={styles.actions}>
         <Pressable
           style={styles.actionButton}
@@ -59,7 +58,7 @@ export default function CarDetailsHero({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 330,
+    height: 260,
     backgroundColor: '#E5E5E0',
     position: 'relative',
     overflow: 'hidden',
@@ -85,7 +84,7 @@ const styles = StyleSheet.create({
   actionButton: {
     width: 40,
     height: 40,
-    borderRadius: 999,
+    borderRadius: 9999,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',

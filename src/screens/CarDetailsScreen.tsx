@@ -1,16 +1,20 @@
+import BookingFooter from '@/components/BookingFooter';
+import CarDetailsContent from '@/components/CarDetailsContent';
 import CarDetailsHero from '@/components/CarDetailsHero';
 
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface CarDetailsScreenProps {
   carName: string;
   onBack: () => void;
+  onConfirmBooking: () => void;
 }
 
 export default function CarDetailsScreen({
   carName,
   onBack,
+  onConfirmBooking,
 }: CarDetailsScreenProps) {
   const carImage =
     carName === 'Hyundai Creta'
@@ -19,17 +23,29 @@ export default function CarDetailsScreen({
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <CarDetailsHero
-        image={carImage}
-        onBack={onBack}
-        onShare={() => {
-          console.log(`Share ${carName}`);
-        }}
-      />
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        <CarDetailsHero
+          image={carImage}
+          onBack={onBack}
+          onShare={() => {
+            console.log(`Share ${carName}`);
+          }}
+        />
 
-      <View style={styles.content}>
-        {/* Car details content will go here */}
-      </View>
+        <CarDetailsContent
+          carName={carName}
+          rating="4.8"
+          trips={214}
+        />
+      </ScrollView>
+
+      <BookingFooter
+        price="₹7,700"
+        onConfirm={onConfirmBooking}
+      />
     </SafeAreaView>
   );
 }
@@ -40,7 +56,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F5F1',
   },
 
-  content: {
+  scrollView: {
     flex: 1,
   },
 });

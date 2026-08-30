@@ -9,8 +9,11 @@ import SearchCarCard from '@/components/SearchCarCard';
 import SearchCarsSheet, {
     SearchData,
 } from '@/components/SearchCarsSheet';
+
 import AvailableCarsScreen from '@/screens/AvailableCarsScreen';
 import CarDetailsScreen from '@/screens/CarDetailsScreen';
+import PaymentScreen from '@/screens/PaymentScreen';
+import ReviewBookingScreen from '@/screens/ReviewBookingScreen';
 
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -22,6 +25,18 @@ export default function HomeScreen() {
 
   // Controls whether the user has searched for cars
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Controls Review Booking screen
+  const [isReviewBookingVisible, setIsReviewBookingVisible] =
+    useState(false);
+
+  // Controls Payment screen
+  const [isPaymentVisible, setIsPaymentVisible] =
+    useState(false);
+
+  // Stores the car being booked
+  const [selectedCarForBooking, setSelectedCarForBooking] =
+    useState<string | null>(null);
 
   // Stores which car the user selected for viewing details
   const [selectedCar, setSelectedCar] =
@@ -36,6 +51,40 @@ export default function HomeScreen() {
   });
 
   // ==========================================
+  // PAYMENT SCREEN
+  // ==========================================
+
+  if (isPaymentVisible && selectedCarForBooking) {
+    return (
+      <PaymentScreen
+        onBack={() => {
+          setIsPaymentVisible(false);
+          setIsReviewBookingVisible(true);
+        }}
+      />
+    );
+  }
+
+  // ==========================================
+  // REVIEW BOOKING SCREEN
+  // ==========================================
+
+  if (isReviewBookingVisible && selectedCarForBooking) {
+    return (
+      <ReviewBookingScreen
+        onBack={() => {
+          setIsReviewBookingVisible(false);
+          setSelectedCarForBooking(null);
+        }}
+        onContinue={() => {
+          setIsReviewBookingVisible(false);
+          setIsPaymentVisible(true);
+        }}
+      />
+    );
+  }
+
+  // ==========================================
   // CAR DETAILS SCREEN
   // ==========================================
 
@@ -44,6 +93,16 @@ export default function HomeScreen() {
       <CarDetailsScreen
         carName={selectedCar}
         onBack={() => setSelectedCar(null)}
+        onConfirmBooking={() => {
+          // Store the car being booked
+          setSelectedCarForBooking(selectedCar);
+
+          // Close car details
+          setSelectedCar(null);
+
+          // Open Review Booking screen
+          setIsReviewBookingVisible(true);
+        }}
       />
     );
   }
@@ -63,13 +122,14 @@ export default function HomeScreen() {
           }
         />
 
-        {/* Reuse the existing search sheet for editing */}
+        {/* Search Cars bottom sheet for editing */}
         <SearchCarsSheet
           visible={isSearchSheetVisible}
           onClose={() => setIsSearchSheetVisible(false)}
           onSearch={(data) => {
             setSearchData(data);
             setHasSearched(true);
+            setIsSearchSheetVisible(false);
           }}
         />
 
@@ -122,6 +182,7 @@ export default function HomeScreen() {
         onSearch={(data) => {
           setSearchData(data);
           setHasSearched(true);
+          setIsSearchSheetVisible(false);
         }}
       />
 
