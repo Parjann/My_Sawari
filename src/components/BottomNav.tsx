@@ -1,27 +1,81 @@
 import { Compass, House, Ticket } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-export default function BottomNav() {
+type Tab = 'home' | 'explore' | 'bookings';
+
+interface BottomNavProps {
+  activeTab: Tab;
+  onTabChange: (tab: Tab) => void;
+}
+
+export default function BottomNav({
+  activeTab,
+  onTabChange,
+}: BottomNavProps) {
+  const isActive = (tab: Tab) => activeTab === tab;
+
   return (
     <View style={styles.container}>
       <View style={styles.navContent}>
         
         {/* Home */}
-        <Pressable style={styles.navButton}>
-          <House size={24} color="#101828" strokeWidth={1.5} />
-          <Text style={[styles.label, styles.activeLabel]}>Home</Text>
+        <Pressable
+          style={styles.navButton}
+          onPress={() => onTabChange('home')}
+        >
+          <House
+            size={24}
+            color={isActive('home') ? '#101828' : '#6F7280'}
+            strokeWidth={1.5}
+          />
+          <Text
+            style={[
+              styles.label,
+              isActive('home') && styles.activeLabel,
+            ]}
+          >
+            Home
+          </Text>
         </Pressable>
 
         {/* Explore */}
-        <Pressable style={styles.navButton}>
-          <Compass size={24} color="#6F7280" strokeWidth={1.5} />
-          <Text style={styles.label}>Explore</Text>
+        <Pressable
+          style={styles.navButton}
+          onPress={() => onTabChange('explore')}
+        >
+          <Compass
+            size={24}
+            color={isActive('explore') ? '#101828' : '#6F7280'}
+            strokeWidth={1.5}
+          />
+          <Text
+            style={[
+              styles.label,
+              isActive('explore') && styles.activeLabel,
+            ]}
+          >
+            Explore
+          </Text>
         </Pressable>
 
         {/* Bookings */}
-        <Pressable style={styles.navButton}>
-          <Ticket size={24} color="#6F7280" strokeWidth={1.5} />
-          <Text style={styles.label}>Bookings</Text>
+        <Pressable
+          style={styles.navButton}
+          onPress={() => onTabChange('bookings')}
+        >
+          <Ticket
+            size={24}
+            color={isActive('bookings') ? '#101828' : '#6F7280'}
+            strokeWidth={1.5}
+          />
+          <Text
+            style={[
+              styles.label,
+              isActive('bookings') && styles.activeLabel,
+            ]}
+          >
+            Bookings
+          </Text>
         </Pressable>
 
       </View>

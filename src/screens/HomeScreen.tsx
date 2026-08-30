@@ -1,4 +1,5 @@
 import BottomNav from '@/components/BottomNav';
+
 import CarCategories from '@/components/CarCategories';
 import HomeGreeting from '@/components/HomeGreeting';
 import HomeHeader from '@/components/HomeHeader';
@@ -11,15 +12,26 @@ import SearchCarsSheet, {
 } from '@/components/SearchCarsSheet';
 
 import AvailableCarsScreen from '@/screens/AvailableCarsScreen';
+import BookingDetailsScreen from '@/screens/BookingDetailsScreen';
 import BookingSuccessScreen from '@/screens/BookingSuccessScreen';
+import BookingsScreen from '@/screens/BookingsScreen';
 import CarDetailsScreen from '@/screens/CarDetailsScreen';
+// import ExploreScreen from '@/screens/ExploreScreen';
 import PaymentScreen from '@/screens/PaymentScreen';
 import ReviewBookingScreen from '@/screens/ReviewBookingScreen';
 
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+type Tab = 'home' | 'explore' | 'bookings';
+
 export default function HomeScreen() {
+  // ==========================================
+  // MAIN TAB STATE
+  // ==========================================
+
+  const [activeTab, setActiveTab] = useState<Tab>('home');
+
   // ==========================================
   // SEARCH STATES
   // ==========================================
@@ -42,6 +54,9 @@ export default function HomeScreen() {
   const [isBookingSuccessVisible, setIsBookingSuccessVisible] =
     useState(false);
 
+  const [isBookingDetailsVisible, setIsBookingDetailsVisible] =
+    useState(false);
+
   // Stores the car being booked
   const [selectedCarForBooking, setSelectedCarForBooking] =
     useState<string | null>(null);
@@ -62,6 +77,18 @@ export default function HomeScreen() {
   });
 
   // ==========================================
+  // COMMON TAB NAVIGATION
+  // ==========================================
+
+  const handleTabChange = (tab: Tab) => {
+    // Close search results when switching tabs
+    setHasSearched(false);
+    setIsSearchSheetVisible(false);
+
+    setActiveTab(tab);
+  };
+
+  // ==========================================
   // BOOKING SUCCESS SCREEN
   // ==========================================
 
@@ -70,21 +97,27 @@ export default function HomeScreen() {
       <BookingSuccessScreen
         carName={selectedCarForBooking}
         onBackToHome={() => {
-          // Reset the complete booking flow
+          // Reset booking flow
           setIsBookingSuccessVisible(false);
           setIsPaymentVisible(false);
           setIsReviewBookingVisible(false);
           setSelectedCarForBooking(null);
           setSelectedCar(null);
-
-          // Return to the home screen
           setHasSearched(false);
+
+          // Go to Home
+          setActiveTab('home');
         }}
         onViewBookings={() => {
-          console.log('Navigate to My Bookings');
+          // Close booking success screen
+          setIsBookingSuccessVisible(false);
+          setIsPaymentVisible(false);
+          setIsReviewBookingVisible(false);
+          setSelectedCar(null);
+          setHasSearched(false);
 
-          // We can connect this to the My Bookings
-          // screen when we build that screen
+          // Navigate to Bookings screen
+          setActiveTab('bookings');
         }}
       />
     );
@@ -99,17 +132,13 @@ export default function HomeScreen() {
       <PaymentScreen
         carName={selectedCarForBooking}
         onBack={() => {
-          // Go back to Review Booking
           setIsPaymentVisible(false);
           setIsReviewBookingVisible(true);
         }}
         onPaymentSuccess={() => {
           console.log('Payment successful');
 
-          // Close payment screen
           setIsPaymentVisible(false);
-
-          // Open booking success screen
           setIsBookingSuccessVisible(true);
         }}
       />
@@ -129,7 +158,6 @@ export default function HomeScreen() {
           setSelectedCarForBooking(null);
         }}
         onContinue={() => {
-          // Move from Review Booking → Payment
           setIsReviewBookingVisible(false);
           setIsPaymentVisible(true);
         }}
@@ -147,15 +175,22 @@ export default function HomeScreen() {
         carName={selectedCar}
         onBack={() => setSelectedCar(null)}
         onConfirmBooking={() => {
-          // Store selected car for the booking flow
           setSelectedCarForBooking(selectedCar);
-
-          // Close car details
           setSelectedCar(null);
-
-          // Open Review Booking screen
           setIsReviewBookingVisible(true);
         }}
+      />
+    );
+  }
+
+  // ==========================================
+  // BOOKING DETAILS SCREEN
+  // ==========================================
+
+  if (isBookingDetailsVisible) {
+    return (
+      <BookingDetailsScreen
+        onBack={() => setIsBookingDetailsVisible(false)}
       />
     );
   }
@@ -175,7 +210,6 @@ export default function HomeScreen() {
           }
         />
 
-        {/* Search Cars bottom sheet for editing */}
         <SearchCarsSheet
           visible={isSearchSheetVisible}
           onClose={() => setIsSearchSheetVisible(false)}
@@ -186,7 +220,48 @@ export default function HomeScreen() {
           }}
         />
 
-        <BottomNav />
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
+      </View>
+    );
+  }
+
+  // ==========================================
+  // BOOKINGS TAB
+  // ==========================================
+
+  if (activeTab === 'bookings') {
+    return (
+      <View style={styles.tabContainer}>
+        <BookingsScreen
+          onViewBookingDetails={() =>
+            setIsBookingDetailsVisible(true)
+          }
+        />
+
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
+      </View>
+    );
+  }
+
+  // ==========================================
+  // EXPLORE TAB
+  // ==========================================
+
+  if (activeTab === 'explore') {
+    return (
+      <View style={styles.tabContainer}>
+        {/* <ExploreScreen /> */}
+
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
       </View>
     );
   }
@@ -228,7 +303,6 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Search Cars bottom sheet */}
       <SearchCarsSheet
         visible={isSearchSheetVisible}
         onClose={() => setIsSearchSheetVisible(false)}
@@ -239,7 +313,10 @@ export default function HomeScreen() {
         }}
       />
 
-      <BottomNav />
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
     </View>
   );
 }
@@ -253,6 +330,11 @@ const styles = StyleSheet.create({
   resultsContainer: {
     flex: 1,
     backgroundColor: '#F6F5F1',
+  },
+
+  tabContainer: {
+    flex: 1,
+    backgroundColor: '#F7F7F3',
   },
 
   content: {

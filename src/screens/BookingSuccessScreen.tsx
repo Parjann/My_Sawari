@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+
 import {
     Image,
     Pressable,
@@ -6,6 +7,7 @@ import {
     Text,
     View,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface BookingSuccessScreenProps {
@@ -26,16 +28,15 @@ export default function BookingSuccessScreen({
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      {/* =========================================
-          MAIN CONTENT
-      ========================================= */}
       <View style={styles.content}>
-        {/* =========================================
-            SUCCESS SECTION
-        ========================================= */}
+        {/* SUCCESS SECTION */}
         <View style={styles.successSection}>
           <View style={styles.successIcon}>
-            <Feather name="check" size={40} color="#101828" />
+            <Feather
+              name="check"
+              size={40}
+              color="#101828"
+            />
           </View>
 
           <Text style={styles.title}>You're all set</Text>
@@ -45,9 +46,7 @@ export default function BookingSuccessScreen({
           </Text>
         </View>
 
-        {/* =========================================
-            BOOKING DETAILS CARD
-        ========================================= */}
+        {/* BOOKING DETAILS CARD */}
         <View style={styles.bookingCard}>
           {/* Booking Reference */}
           <View style={styles.referenceRow}>
@@ -83,7 +82,6 @@ export default function BookingSuccessScreen({
 
           {/* Location, Date & Time */}
           <View style={styles.detailsContainer}>
-            {/* Location */}
             <View style={styles.detailRow}>
               <Feather
                 name="map-pin"
@@ -96,7 +94,6 @@ export default function BookingSuccessScreen({
               </Text>
             </View>
 
-            {/* Dates */}
             <View style={styles.detailRowSpacing}>
               <Feather
                 name="calendar"
@@ -109,7 +106,6 @@ export default function BookingSuccessScreen({
               </Text>
             </View>
 
-            {/* Time */}
             <View style={styles.detailRowSpacing}>
               <Feather
                 name="clock"
@@ -138,9 +134,7 @@ export default function BookingSuccessScreen({
         </View>
       </View>
 
-      {/* =========================================
-          FOOTER ACTIONS
-      ========================================= */}
+      {/* FOOTER ACTIONS */}
       <View style={styles.footer}>
         <Pressable
           style={styles.homeButton}
@@ -165,10 +159,6 @@ export default function BookingSuccessScreen({
 }
 
 const styles = StyleSheet.create({
-  /* =========================================
-     SCREEN
-  ========================================= */
-
   container: {
     flex: 1,
     backgroundColor: '#F7F7F3',
@@ -179,10 +169,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     alignItems: 'center',
   },
-
-  /* =========================================
-     SUCCESS SECTION
-  ========================================= */
 
   successSection: {
     width: '100%',
@@ -219,10 +205,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  /* =========================================
-     BOOKING CARD
-  ========================================= */
-
   bookingCard: {
     width: '100%',
     marginTop: 36,
@@ -232,10 +214,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E5E0',
   },
-
-  /* =========================================
-     BOOKING REFERENCE
-  ========================================= */
 
   referenceRow: {
     height: 23,
@@ -264,10 +242,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E5E0',
     marginTop: 16,
   },
-
-  /* =========================================
-     CAR INFORMATION
-  ========================================= */
 
   carRow: {
     flexDirection: 'row',
@@ -302,10 +276,6 @@ const styles = StyleSheet.create({
     color: '#6F7280',
   },
 
-  /* =========================================
-     BOOKING DETAILS
-  ========================================= */
-
   detailsContainer: {
     marginTop: 16,
   },
@@ -336,10 +306,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 
-  /* =========================================
-     PAID AMOUNT
-  ========================================= */
-
   paidRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -361,10 +327,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     color: '#101828',
   },
-
-  /* =========================================
-     FOOTER
-  ========================================= */
 
   footer: {
     flexDirection: 'row',
