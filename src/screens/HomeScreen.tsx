@@ -11,6 +11,7 @@ import SearchCarsSheet, {
 } from '@/components/SearchCarsSheet';
 
 import AvailableCarsScreen from '@/screens/AvailableCarsScreen';
+import BookingSuccessScreen from '@/screens/BookingSuccessScreen';
 import CarDetailsScreen from '@/screens/CarDetailsScreen';
 import PaymentScreen from '@/screens/PaymentScreen';
 import ReviewBookingScreen from '@/screens/ReviewBookingScreen';
@@ -19,30 +20,40 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function HomeScreen() {
-  // Controls the Search Cars bottom sheet
+  // ==========================================
+  // SEARCH STATES
+  // ==========================================
+
   const [isSearchSheetVisible, setIsSearchSheetVisible] =
     useState(false);
 
-  // Controls whether the user has searched for cars
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Controls Review Booking screen
+  // ==========================================
+  // BOOKING FLOW STATES
+  // ==========================================
+
   const [isReviewBookingVisible, setIsReviewBookingVisible] =
     useState(false);
 
-  // Controls Payment screen
   const [isPaymentVisible, setIsPaymentVisible] =
+    useState(false);
+
+  const [isBookingSuccessVisible, setIsBookingSuccessVisible] =
     useState(false);
 
   // Stores the car being booked
   const [selectedCarForBooking, setSelectedCarForBooking] =
     useState<string | null>(null);
 
-  // Stores which car the user selected for viewing details
+  // Stores the car selected for viewing details
   const [selectedCar, setSelectedCar] =
     useState<string | null>(null);
 
-  // Stores the user's search information
+  // ==========================================
+  // SEARCH DATA
+  // ==========================================
+
   const [searchData, setSearchData] = useState<SearchData>({
     location: 'Guwahati',
     dates: '17 Aug – 20 Aug',
@@ -51,15 +62,55 @@ export default function HomeScreen() {
   });
 
   // ==========================================
+  // BOOKING SUCCESS SCREEN
+  // ==========================================
+
+  if (isBookingSuccessVisible && selectedCarForBooking) {
+    return (
+      <BookingSuccessScreen
+        carName={selectedCarForBooking}
+        onBackToHome={() => {
+          // Reset the complete booking flow
+          setIsBookingSuccessVisible(false);
+          setIsPaymentVisible(false);
+          setIsReviewBookingVisible(false);
+          setSelectedCarForBooking(null);
+          setSelectedCar(null);
+
+          // Return to the home screen
+          setHasSearched(false);
+        }}
+        onViewBookings={() => {
+          console.log('Navigate to My Bookings');
+
+          // We can connect this to the My Bookings
+          // screen when we build that screen
+        }}
+      />
+    );
+  }
+
+  // ==========================================
   // PAYMENT SCREEN
   // ==========================================
 
   if (isPaymentVisible && selectedCarForBooking) {
     return (
       <PaymentScreen
+        carName={selectedCarForBooking}
         onBack={() => {
+          // Go back to Review Booking
           setIsPaymentVisible(false);
           setIsReviewBookingVisible(true);
+        }}
+        onPaymentSuccess={() => {
+          console.log('Payment successful');
+
+          // Close payment screen
+          setIsPaymentVisible(false);
+
+          // Open booking success screen
+          setIsBookingSuccessVisible(true);
         }}
       />
     );
@@ -72,11 +123,13 @@ export default function HomeScreen() {
   if (isReviewBookingVisible && selectedCarForBooking) {
     return (
       <ReviewBookingScreen
+        carName={selectedCarForBooking}
         onBack={() => {
           setIsReviewBookingVisible(false);
           setSelectedCarForBooking(null);
         }}
         onContinue={() => {
+          // Move from Review Booking → Payment
           setIsReviewBookingVisible(false);
           setIsPaymentVisible(true);
         }}
@@ -94,7 +147,7 @@ export default function HomeScreen() {
         carName={selectedCar}
         onBack={() => setSelectedCar(null)}
         onConfirmBooking={() => {
-          // Store the car being booked
+          // Store selected car for the booking flow
           setSelectedCarForBooking(selectedCar);
 
           // Close car details

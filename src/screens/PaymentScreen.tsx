@@ -1,5 +1,6 @@
 ﻿import { Feather } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
   Pressable,
   ScrollView,
@@ -7,18 +8,34 @@ import {
   Text,
   View,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import PaymentProcessing from '@/components/PaymentProcessing';
+
 interface PaymentScreenProps {
+  carName: string;
   onBack: () => void;
+  onPaymentSuccess: () => void;
 }
 
-export default function PaymentScreen({
-  onBack,
-}: PaymentScreenProps) {
-  const [selectedMethod, setSelectedMethod] = useState('upi');
+type PaymentMethod = 'upi' | 'card' | 'netbanking';
 
-  const paymentMethods = [
+export default function PaymentScreen({
+  carName,
+  onBack,
+  onPaymentSuccess,
+}: PaymentScreenProps) {
+  const [selectedMethod, setSelectedMethod] =
+    useState<PaymentMethod>('upi');
+
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const paymentMethods: {
+    id: PaymentMethod;
+    title: string;
+    subtitle: string;
+  }[] = [
     {
       id: 'upi',
       title: 'UPI',
@@ -36,16 +53,63 @@ export default function PaymentScreen({
     },
   ];
 
+  /* =========================================
+     PAYMENT PROCESSING → SUCCESS
+  ========================================= */
+
+  useEffect(() => {
+    if (!isProcessing) return;
+
+    // Show the processing animation for 3 seconds
+    const paymentTimer = setTimeout(() => {
+      setIsProcessing(false);
+      onPaymentSuccess();
+    }, 3000);
+
+    return () => clearTimeout(paymentTimer);
+  }, [isProcessing, onPaymentSuccess]);
+
+  /* =========================================
+     PAYMENT PROCESSING SCREEN
+  ========================================= */
+
+  if (isProcessing) {
+    return (
+      <SafeAreaView
+        style={styles.container}
+        edges={['top', 'bottom']}
+      >
+        <View style={styles.processingScreen}>
+          <PaymentProcessing />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  /* =========================================
+     PAYMENT SCREEN
+  ========================================= */
+
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top', 'bottom']}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Header */}
         <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={onBack}>
-            <Feather name="arrow-left" size={20} color="#101828" />
+          <Pressable
+            style={styles.backButton}
+            onPress={onBack}
+          >
+            <Feather
+              name="arrow-left"
+              size={20}
+              color="#101828"
+            />
           </Pressable>
 
           <Text style={styles.headerTitle}>Payment</Text>
@@ -53,24 +117,33 @@ export default function PaymentScreen({
 
         {/* Payment Summary */}
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Pay today</Text>
+          <Text style={styles.summaryLabel}>
+            Pay today
+          </Text>
 
-          <Text style={styles.summaryPrice}>₹7,700</Text>
+          <Text style={styles.summaryPrice}>
+            ₹7,700
+          </Text>
 
           <Text style={styles.summaryMeta}>
-            Hyundai Creta · 17 Aug–20 Aug · Self Drive
+            {carName} · 17 Aug–20 Aug · Self Drive
           </Text>
         </View>
 
         {/* Payment Method */}
-        <Text style={styles.sectionTitle}>Payment method</Text>
+        <Text style={styles.sectionTitle}>
+          Payment method
+        </Text>
 
         <View style={styles.methodsList}>
           {paymentMethods.map((method) => {
-            const isSelected = selectedMethod === method.id;
+            const isSelected =
+              selectedMethod === method.id;
 
-            // Use only valid Feather icon names
-            const iconName =
+            const iconName:
+              | 'credit-card'
+              | 'briefcase'
+              | 'smartphone' =
               method.id === 'card'
                 ? 'credit-card'
                 : method.id === 'netbanking'
@@ -84,7 +157,9 @@ export default function PaymentScreen({
                   styles.methodRow,
                   isSelected && styles.methodRowSelected,
                 ]}
-                onPress={() => setSelectedMethod(method.id)}
+                onPress={() =>
+                  setSelectedMethod(method.id)
+                }
               >
                 <Feather
                   name={iconName}
@@ -102,6 +177,7 @@ export default function PaymentScreen({
                   </Text>
                 </View>
 
+                {/* Radio Button */}
                 <View
                   style={[
                     styles.radio,
@@ -135,15 +211,18 @@ export default function PaymentScreen({
         </View>
       </ScrollView>
 
-      {/* Fixed Bottom Button */}
+      {/* Fixed Footer */}
       <View style={styles.footer}>
         <Pressable
           style={styles.payButton}
           onPress={() => {
             console.log('Payment initiated');
+            setIsProcessing(true);
           }}
         >
-          <Text style={styles.payButtonText}>Pay ₹7,700</Text>
+          <Text style={styles.payButtonText}>
+            Pay ₹7,700
+          </Text>
 
           <Feather
             name="arrow-right"
@@ -160,6 +239,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F7F7F3',
+  },
+
+  /* =========================================
+     PAYMENT PROCESSING
+  ========================================= */
+
+  processingScreen: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   /* =========================================

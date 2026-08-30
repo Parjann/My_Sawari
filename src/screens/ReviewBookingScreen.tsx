@@ -11,14 +11,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface ReviewBookingScreenProps {
+  carName: string;
   onBack: () => void;
   onContinue: () => void;
 }
 
 export default function ReviewBookingScreen({
+  carName,
   onBack,
   onContinue,
 }: ReviewBookingScreenProps) {
+  const carImage =
+    carName === 'Hyundai Creta'
+      ? require('@/assets/images/cars/verna.png')
+      : require('@/assets/images/cars/ford.png');
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* =========================================
@@ -40,13 +47,13 @@ export default function ReviewBookingScreen({
         {/* Car Summary */}
         <View style={styles.carCard}>
           <Image
-            source={require('@/assets/images/cars/verna.png')}
+            source={carImage}
             style={styles.carImage}
             resizeMode="cover"
           />
 
           <View style={styles.carInfo}>
-            <Text style={styles.carName}>Hyundai Creta</Text>
+            <Text style={styles.carName}>{carName}</Text>
 
             <Text style={styles.carDetails}>
               SUV · 5 seats · Automatic
