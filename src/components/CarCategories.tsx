@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { categories, CategoryType } from '@/data/cars';
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
-const categories = ['All', 'SUV', 'Sedan', 'Hatchback', 'MUV', 'Luxury'];
+interface CarCategoriesProps {
+  selectedCategory?: CategoryType;
+  onCategoryChange?: (category: CategoryType) => void;
+}
 
-export default function CarCategories() {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-
+export default function CarCategories({
+  selectedCategory = 'All',
+  onCategoryChange,
+}: CarCategoriesProps) {
   return (
     <ScrollView
       horizontal
@@ -18,7 +22,7 @@ export default function CarCategories() {
         return (
           <TouchableOpacity
             key={category}
-            onPress={() => setSelectedCategory(category)}
+            onPress={() => onCategoryChange?.(category)}
             style={[
               styles.categoryButton,
               isActive && styles.activeButton,
@@ -72,4 +76,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#101828',
   },
-});
+});

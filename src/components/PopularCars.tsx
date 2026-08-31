@@ -1,55 +1,43 @@
+import { cars, CategoryType, getCarsByCategory } from '@/data/cars';
 import {
     Image,
+    Pressable,
     ScrollView,
     StyleSheet,
     Text,
     View,
 } from 'react-native';
 
-const cars = [
-  {
-    name: 'Hyundai Creta',
-    details: 'SUV · Automatic · 5 seats',
-    price: '₹2,500',
-    status: 'Available',
-    image: require('@/assets/images/cars/hyundai-creta.png'),
-    available: true,
-  },
-  {
-    name: 'Kia Seltos',
-    details: 'SUV · Automatic · 5 seats',
-    price: '₹2,500',
-    status: 'Available',
-    image: require('@/assets/images/cars/kia-seltos.png'),
-    available: true,
-  },
-  {
-    name: 'Maruti Suzuki Ignis',
-    details: 'MUV · Manual · 7 seats',
-    price: '₹2,200',
-    status: 'Available',
-    image: require('@/assets/images/cars/maruti-ignis.png'),
-    available: true,
-  },
-  {
-    name: 'Toyota Innova Crysta',
-    details: 'MUV · Manual · 7 seats',
-    price: '₹3,200',
-    status: 'Completed',
-    image: require('@/assets/images/cars/toyota-innova.png'),
-    available: false,
-  },
-];
+interface PopularCarsProps {
+  selectedCategory?: CategoryType;
+  onSelectCar?: (carId: string) => void;
+}
 
-export default function PopularCars() {
+function formatCarDetails(car: typeof cars[0]): string {
+  return `${car.category} · ${car.transmission} · ${car.seats} seats`;
+}
+
+function getStatusText(available: boolean): string {
+  return available ? 'Available' : 'Completed';
+}
+
+export default function PopularCars({
+  selectedCategory = 'All',
+  onSelectCar,
+}: PopularCarsProps) {
+  const filteredCars = getCarsByCategory(selectedCategory);
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
     >
-      {cars.map((car, index) => (
-        <View style={styles.card} key={index}>
+      {filteredCars.map((car) => (
+        <Pressable
+          style={styles.card}
+          key={car.id}
+          onPress={() => onSelectCar?.(car.id)}
+        >
           <View style={styles.imageContainer}>
             <Image source={car.image} style={styles.image} />
           </View>
@@ -58,7 +46,9 @@ export default function PopularCars() {
             <View style={styles.infoContainer}>
               <Text style={styles.carName}>{car.name}</Text>
 
-              <Text style={styles.details}>{car.details}</Text>
+              <Text style={styles.details}>
+                {formatCarDetails(car)}
+              </Text>
 
               <View style={styles.statusContainer}>
                 <View
@@ -68,20 +58,23 @@ export default function PopularCars() {
                   ]}
                 />
 
-                <Text style={styles.statusText}>{car.status}</Text>
+                <Text style={styles.statusText}>
+                  {getStatusText(car.available)}
+                </Text>
               </View>
             </View>
 
             <View style={styles.priceContainer}>
-              <Text style={styles.price}>{car.price}</Text>
+              <Text style={styles.price}>₹{car.pricePerDay}</Text>
               <Text style={styles.perDay}>/day</Text>
             </View>
           </View>
-        </View>
+        </Pressable>
       ))}
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   scrollContent: {

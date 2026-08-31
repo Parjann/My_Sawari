@@ -1,3 +1,5 @@
+import { useBooking } from '@/store/BookingContext';
+import { getBookingWithCar } from '@/utils/bookingUtils';
 import { Feather } from '@expo/vector-icons';
 import {
     Image,
@@ -10,32 +12,59 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface BookingDetailsScreenProps {
+  bookingId?: string;
   onBack: () => void;
 }
 
 export default function BookingDetailsScreen({
+  bookingId,
   onBack,
 }: BookingDetailsScreenProps) {
+  const { getBookingById, bookings } = useBooking();
+
+  // If no bookingId provided, get the first upcoming booking
+  const booking = bookingId
+    ? getBookingById(bookingId)
+    : bookings.find((b) => b.status === 'upcoming');
+
+  const bookingWithCar = booking ? getBookingWithCar(booking) : null;
+
+  if (!bookingWithCar) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Pressable style={styles.backButton} onPress={onBack}>
+            <Feather name="arrow-left" size={20} color="#101828" />
+          </Pressable>
+          <Text style={styles.headerTitle}>Booking details</Text>
+        </View>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>No booking found</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const customerDetails = [
     {
-      icon: 'user',
+      icon: 'user' as const,
       label: 'Full name',
-      value: 'Jatin Prajapat',
+      value: bookingWithCar.customer.fullName,
     },
     {
-      icon: 'smartphone',
+      icon: 'smartphone' as const,
       label: 'Mobile',
-      value: '1234565433',
+      value: bookingWithCar.customer.mobile,
     },
     {
-      icon: 'mail',
+      icon: 'mail' as const,
       label: 'Email',
-      value: 'jatinprajapat682@gmail.com',
+      value: bookingWithCar.customer.email,
     },
     {
-      icon: 'check-circle',
+      icon: 'check-circle' as const,
       label: 'Driving licence',
-      value: '23456543456y65434',
+      value: bookingWithCar.customer.drivingLicence,
     },
   ] as const;
 
@@ -58,12 +87,15 @@ export default function BookingDetailsScreen({
         <View style={styles.bookingCard}>
           <View>
             <Text style={styles.bookingLabel}>Booking ID</Text>
-            <Text style={styles.bookingId}>MS-20260817-001</Text>
+            <Text style={styles.bookingId}>{bookingWithCar.id}</Text>
           </View>
 
           <View style={styles.statusContainer}>
             <View style={styles.statusDot} />
-            <Text style={styles.statusText}>Upcoming</Text>
+            <Text style={styles.statusText}>
+              {bookingWithCar.status.charAt(0).toUpperCase() +
+                bookingWithCar.status.slice(1)}
+            </Text>
           </View>
         </View>
 
@@ -72,19 +104,17 @@ export default function BookingDetailsScreen({
 
         <View style={styles.vehicleCard}>
           <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1000&q=80',
-            }}
+            source={bookingWithCar.car.image}
             style={styles.vehicleImage}
           />
 
           <View style={styles.vehicleContent}>
-            <Text style={styles.carName}>Kia Seltos</Text>
+            <Text style={styles.carName}>{bookingWithCar.car.name}</Text>
 
             <View style={styles.specsContainer}>
-              <Spec icon="users" text="5 seats" />
-              <Spec icon="zap" text="Diesel" />
-              <Spec icon="wind" text="Automatic" />
+              <Spec icon="users" text={`${bookingWithCar.car.seats} seats`} />
+              <Spec icon="zap" text={bookingWithCar.car.fuel} />
+              <Spec icon="wind" text={bookingWithCar.car.transmission} />
             </View>
 
             <View style={styles.secondSpecRow}>
@@ -99,15 +129,15 @@ export default function BookingDetailsScreen({
         <View style={styles.tripCard}>
           <TripBlock
             title="PICKUP"
-            location="Bikaner"
-            date="17 Aug · 10:00 AM"
+            location={bookingWithCar.pickup.location}
+            date={`${bookingWithCar.pickup.date} · ${bookingWithCar.pickup.time}`}
             border
           />
 
           <TripBlock
             title="RETURN"
-            location="Bikaner"
-            date="20 Aug · 10:00 AM"
+            location={bookingWithCar.return.location}
+            date={`${bookingWithCar.return.date} · ${bookingWithCar.return.time}`}
           />
         </View>
 
@@ -148,9 +178,13 @@ export default function BookingDetailsScreen({
           </View>
 
           <View>
-            <Text style={styles.drivingTitle}>Self Drive</Text>
+            <Text style={styles.drivingTitle}>
+              {bookingWithCar.drivingOption}
+            </Text>
             <Text style={styles.drivingSubtitle}>
-              You drive · no driver charges
+              {bookingWithCar.drivingOption === 'Self Drive'
+                ? 'You drive · no driver charges'
+                : 'With professional driver included'}
             </Text>
           </View>
         </View>
@@ -159,20 +193,34 @@ export default function BookingDetailsScreen({
         <SectionTitle title="PAYMENT" />
 
         <View style={styles.paymentCard}>
-          <PriceRow label="Rental (3 days)" value="₹7,500" />
-          <PriceRow label="Additional charges" value="₹500" />
-          <PriceRow label="Discount" value="−₹300" discount />
+          <PriceRow
+            label="Rental"
+            value={`₹${bookingWithCar.pricing.rental}`}
+          />
+          <PriceRow
+            label="Additional charges"
+            value={`₹${bookingWithCar.pricing.additionalCharges}`}
+          />
+          {bookingWithCar.pricing.discount > 0 && (
+            <PriceRow
+              label="Discount"
+              value={`−₹${bookingWithCar.pricing.discount}`}
+              discount
+            />
+          )}
 
           <View style={styles.divider} />
 
           <View style={styles.paidTodayRow}>
             <Text style={styles.paidTodayLabel}>Paid today</Text>
-            <Text style={styles.paidTodayValue}>₹7,700</Text>
+            <Text style={styles.paidTodayValue}>
+              ₹{bookingWithCar.pricing.paidToday}
+            </Text>
           </View>
 
           <PriceRow
             label="Security deposit (at pickup)"
-            value="₹2,000"
+            value={`₹${bookingWithCar.pricing.securityDeposit}`}
             mutedValue
           />
         </View>
@@ -636,5 +684,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#356AE6',
+  },
+
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6F7280',
   },
 });

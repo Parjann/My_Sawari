@@ -1,20 +1,45 @@
+import { useBooking } from '@/store/BookingContext';
+import { getBookingWithCar } from '@/utils/bookingUtils';
 import { Feather } from '@expo/vector-icons';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-export default function NextTripCard() {
+interface NextTripCardProps {
+  onPress?: () => void;
+}
+
+export default function NextTripCard({ onPress }: NextTripCardProps) {
+  const { bookings } = useBooking();
+
+  const nextTrip = bookings.find((b) => b.status === 'upcoming');
+  const bookingWithCar = nextTrip ? getBookingWithCar(nextTrip) : null;
+
+  if (!bookingWithCar) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.content}>
+          <Text style={styles.label}>Your next trip</Text>
+          <Text style={styles.carName}>No upcoming bookings</Text>
+          <Text style={styles.date}>Book a car to get started</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
-    <Pressable style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress}>
       <Image
-        source={require('@/assets/images/cars/hyundai-creta.png')}
+        source={bookingWithCar.car.image}
         style={styles.carImage}
       />
 
       <View style={styles.content}>
         <Text style={styles.label}>Your next trip</Text>
 
-        <Text style={styles.carName}>Hyundai Creta</Text>
+        <Text style={styles.carName}>{bookingWithCar.car.name}</Text>
 
-        <Text style={styles.date}>17 Aug → 20 Aug</Text>
+        <Text style={styles.date}>
+          {bookingWithCar.pickup.date} → {bookingWithCar.return.date}
+        </Text>
       </View>
 
       <Feather name="arrow-right" size={24} color="#FFFFFF" />

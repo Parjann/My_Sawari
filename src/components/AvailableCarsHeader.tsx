@@ -5,6 +5,8 @@ interface AvailableCarsHeaderProps {
   location: string;
   dates: string;
   drivingOption: string;
+  activeFiltersCount?: number;
+  activeSortLabel?: string;
   onEdit: () => void;
   onFilter: () => void;
   onSort: () => void;
@@ -33,10 +35,15 @@ export default function AvailableCarsHeader({
   location,
   dates,
   drivingOption,
+  activeFiltersCount = 0,
+  activeSortLabel,
   onEdit,
   onFilter,
   onSort,
 }: AvailableCarsHeaderProps) {
+  const hasActiveFilters = activeFiltersCount > 0;
+  const hasActiveSort = !!activeSortLabel && activeSortLabel !== 'Recommended';
+
   return (
     <View style={styles.container}>
       {/* Top Row */}
@@ -56,14 +63,48 @@ export default function AvailableCarsHeader({
 
       {/* Filter and Sort */}
       <View style={styles.actions}>
-        <Pressable style={styles.actionButton} onPress={onFilter}>
-          <Feather name="filter" size={16} color="#101828" />
-          <Text style={styles.actionText}>Filter</Text>
+        <Pressable
+          style={[
+            styles.actionButton,
+            hasActiveFilters && styles.actionButtonActive,
+          ]}
+          onPress={onFilter}
+        >
+          <Feather
+            name="filter"
+            size={15}
+            color={hasActiveFilters ? '#FFFFFF' : '#101828'}
+          />
+          <Text
+            style={[
+              styles.actionText,
+              hasActiveFilters && styles.actionTextActive,
+            ]}
+          >
+            {hasActiveFilters ? `Filter (${activeFiltersCount})` : 'Filter'}
+          </Text>
         </Pressable>
 
-        <Pressable style={styles.actionButton} onPress={onSort}>
-          <Feather name="sliders" size={16} color="#101828" />
-          <Text style={styles.actionText}>Sort</Text>
+        <Pressable
+          style={[
+            styles.actionButton,
+            hasActiveSort && styles.actionButtonActive,
+          ]}
+          onPress={onSort}
+        >
+          <Feather
+            name="sliders"
+            size={15}
+            color={hasActiveSort ? '#FFFFFF' : '#101828'}
+          />
+          <Text
+            style={[
+              styles.actionText,
+              hasActiveSort && styles.actionTextActive,
+            ]}
+          >
+            {hasActiveSort ? `Sort: ${activeSortLabel}` : 'Sort'}
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -90,6 +131,7 @@ const styles = StyleSheet.create({
   },
 
   label: {
+    fontFamily: 'Manrope',
     fontSize: 14,
     lineHeight: 19,
     fontWeight: '700',
@@ -99,6 +141,7 @@ const styles = StyleSheet.create({
 
   searchDetails: {
     marginTop: 1,
+    fontFamily: 'Manrope',
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '700',
@@ -116,6 +159,7 @@ const styles = StyleSheet.create({
   },
 
   editText: {
+    fontFamily: 'Manrope',
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600',
@@ -130,20 +174,30 @@ const styles = StyleSheet.create({
 
   actionButton: {
     height: 34,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     backgroundColor: '#FFFFFF',
     borderWidth: 0.8,
     borderColor: '#E5E5E0',
     borderRadius: 99,
   },
 
+  actionButtonActive: {
+    backgroundColor: '#101828',
+    borderColor: '#101828',
+  },
+
   actionText: {
+    fontFamily: 'Manrope',
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600',
     color: '#101828',
   },
-});
+
+  actionTextActive: {
+    color: '#FFFFFF',
+  },
+});

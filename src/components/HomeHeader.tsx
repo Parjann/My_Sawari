@@ -1,18 +1,31 @@
+import NotificationsSheet from '@/components/NotificationsSheet';
 import { Feather } from '@expo/vector-icons';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeHeader() {
   const insets = useSafeAreaInsets();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   return (
-    <View style={[styles.container, { marginTop: insets.top + 12 }]}>
-      <Text style={styles.logo}>My Sawari</Text>
+    <>
+      <View style={[styles.container, { marginTop: insets.top + 12 }]}>
+        <Text style={styles.logo}>My Sawari</Text>
 
-      <Pressable style={styles.notificationButton}>
-        <Feather name="bell" size={19} color="#101828" />
-      </Pressable>
-    </View>
+        <Pressable
+          style={styles.notificationButton}
+          onPress={() => setIsNotificationsOpen(true)}
+        >
+          <Feather name="bell" size={19} color="#101828" />
+        </Pressable>
+      </View>
+
+      <NotificationsSheet
+        visible={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+      />
+    </>
   );
 }
 
@@ -26,6 +39,7 @@ const styles = StyleSheet.create({
   },
 
   logo: {
+    fontFamily: 'Manrope',
     fontSize: 20,
     fontWeight: '800',
     letterSpacing: -0.5,
@@ -42,4 +56,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-});
+});

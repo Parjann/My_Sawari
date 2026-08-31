@@ -1,8 +1,12 @@
+import { BookingStatus } from '@/data/bookings';
+import { getCarById } from '@/data/cars';
+import { useBooking } from '@/store/BookingContext';
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
     Image,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     View,
@@ -12,23 +16,38 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 type BookingTab = 'Upcoming' | 'Active' | 'Completed';
 
 interface BookingsScreenProps {
-  onViewBookingDetails: () => void;
+  onViewBookingDetails: (bookingId?: string) => void;
 }
 
 export default function BookingsScreen({
   onViewBookingDetails,
 }: BookingsScreenProps) {
+  const { bookings } = useBooking();
   const [activeTab, setActiveTab] = useState<BookingTab>('Upcoming');
 
   const tabs: BookingTab[] = ['Upcoming', 'Active', 'Completed'];
 
+  const tabStatusMap: Record<BookingTab, BookingStatus> = {
+    Upcoming: 'upcoming',
+    Active: 'active',
+    Completed: 'completed',
+  };
+
+  const currentBookings = bookings.filter(
+    (b) => b.status === tabStatusMap[activeTab]
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.content}>
-        {/* Title */}
-        <Text style={styles.title}>Your booking</Text>
+        {/* =====================================================
+            TITLE
+        ====================================================== */}
+        <Text style={styles.title}>Your bookings</Text>
 
-        {/* Tabs */}
+        {/* =====================================================
+            TABS
+        ====================================================== */}
         <View style={styles.tabsContainer}>
           <View style={styles.tabs}>
             {tabs.map((tab) => (
@@ -53,84 +72,173 @@ export default function BookingsScreen({
           </View>
         </View>
 
-        {/* Upcoming Booking */}
-        {activeTab === 'Upcoming' && (
-          <Pressable
-            style={styles.bookingCard}
-            onPress={onViewBookingDetails}
-          >
-            <Image
-              source={require('@/assets/images/cars/verna.png')}
-              style={styles.carImage}
-              resizeMode="cover"
-            />
-
-            <View style={styles.bookingInfo}>
-              {/* Car name + Status */}
-              <View style={styles.cardHeader}>
-                <Text style={styles.carName}>Kia Seltos</Text>
-
-                <View style={styles.statusBadge}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusText}>Upcoming</Text>
-                </View>
-              </View>
-
-              {/* Date */}
-              <View style={styles.infoRow}>
-                <Feather
-                  name="calendar"
-                  size={14}
-                  color="#6F7280"
-                />
-                <Text style={styles.infoText}>17 Aug — 20 Aug</Text>
-              </View>
-
-              {/* Location */}
-              <View style={styles.infoRow}>
-                <Feather
-                  name="navigation"
-                  size={14}
-                  color="#6F7280"
-                />
-                <Text style={styles.infoText}>
-                  Bikaner · Self Drive
-                </Text>
-              </View>
-
-              {/* Price */}
-              <Text style={styles.price}>₹7,700 paid</Text>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollList}
+        >
+          {currentBookings.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Feather
+                name={
+                  activeTab === 'Completed'
+                    ? 'check-circle'
+                    : activeTab === 'Active'
+                    ? 'activity'
+                    : 'calendar'
+                }
+                size={36}
+                color="#98A2B3"
+              />
+              <Text style={styles.emptyTitle}>
+                No {activeTab.toLowerCase()} bookings
+              </Text>
+              <Text style={styles.emptyText}>
+                Your {activeTab.toLowerCase()} bookings will appear here.
+              </Text>
             </View>
-          </Pressable>
-        )}
+          ) : (
+            currentBookings.map((booking) => {
+              const car = getCarById(booking.carId);
+              const carName = car ? car.name : 'Rental Vehicle';
+              const carImage = car
+                ? car.image
+                : require('@/assets/images/cars/verna.png');
 
-        {/* Active Empty State */}
-        {activeTab === 'Active' && (
-          <View style={styles.emptyState}>
-            <Feather name="truck" size={32} color="#98A2B3" />
-            <Text style={styles.emptyTitle}>No active bookings</Text>
-            <Text style={styles.emptyText}>
-              You don't have any active bookings right now.
-            </Text>
-          </View>
-        )}
+              if (activeTab === 'Active') {
+                return (
+                  <View style={styles.activeCard} key={booking.id}>
+                    {/* Active status */}
+                    <View style={styles.activeHeader}>
+                      <View style={styles.activeStatus}>
+                        <View style={styles.activeDot} />
+                        <Text style={styles.activeStatusText}>
+                          Your rental is active
+                        </Text>
+                      </View>
+                    </View>
 
-        {/* Completed Empty State */}
-        {activeTab === 'Completed' && (
-          <View style={styles.emptyState}>
-            <Feather name="check-circle" size={32} color="#98A2B3" />
-            <Text style={styles.emptyTitle}>No completed bookings</Text>
-            <Text style={styles.emptyText}>
-              Your completed bookings will appear here.
-            </Text>
-          </View>
-        )}
+                    {/* Vehicle information */}
+                    <View style={styles.activeVehicleContainer}>
+                      <Image
+                        source={carImage}
+                        style={styles.activeCarImage}
+                        resizeMode="cover"
+                      />
+
+                      <View style={styles.activeVehicleInfo}>
+                        <Text style={styles.activeCarName}>{carName}</Text>
+
+                        {/* Driver + Location */}
+                        <View style={styles.activeInfoRow}>
+                          <Feather
+                            name={
+                              booking.drivingOption === 'With Driver'
+                                ? 'user'
+                                : 'navigation'
+                            }
+                            size={14}
+                            color="rgba(255,255,255,0.7)"
+                          />
+                          <Text style={styles.activeInfoText}>
+                            {booking.drivingOption} · {booking.pickup.location}
+                          </Text>
+                        </View>
+
+                        {/* Return */}
+                        <Text style={styles.activeInfoText}>
+                          Return · {booking.return.date} · {booking.return.time}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* View Rental button */}
+                    <View style={styles.activeButtonContainer}>
+                      <Pressable
+                        style={styles.viewRentalButton}
+                        onPress={() => onViewBookingDetails(booking.id)}
+                      >
+                        <Text style={styles.viewRentalText}>View Rental</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                );
+              }
+
+              // Upcoming or Completed card
+              return (
+                <Pressable
+                  key={booking.id}
+                  style={styles.bookingCard}
+                  onPress={() => onViewBookingDetails(booking.id)}
+                >
+                  <Image
+                    source={carImage}
+                    style={styles.carImage}
+                    resizeMode="cover"
+                  />
+
+                  <View style={styles.bookingInfo}>
+                    {/* Car name + Status */}
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.carName}>{carName}</Text>
+
+                      <View style={styles.statusBadge}>
+                        <View
+                          style={[
+                            styles.statusDot,
+                            booking.status === 'completed' &&
+                              styles.statusDotCompleted,
+                          ]}
+                        />
+                        <Text style={styles.statusText}>
+                          {booking.status.charAt(0).toUpperCase() +
+                            booking.status.slice(1)}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Date */}
+                    <View style={styles.infoRow}>
+                      <Feather name="calendar" size={14} color="#6F7280" />
+                      <Text style={styles.infoText}>
+                        {booking.pickup.date} — {booking.return.date}
+                      </Text>
+                    </View>
+
+                    {/* Location */}
+                    <View style={styles.infoRow}>
+                      <Feather name="navigation" size={14} color="#6F7280" />
+                      <Text style={styles.infoText}>
+                        {booking.pickup.location} · {booking.drivingOption}
+                      </Text>
+                    </View>
+
+                    {/* Price */}
+                    <Text style={styles.price}>
+                      ₹{booking.pricing.paidToday.toLocaleString('en-IN')} paid
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })
+          )}
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
 }
 
+
+/* ============================================================
+   STYLES
+============================================================ */
+
 const styles = StyleSheet.create({
+
+  /* ==========================================================
+     MAIN
+  ========================================================== */
+
   container: {
     flex: 1,
     backgroundColor: '#F7F7F3',
@@ -141,9 +249,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
 
-  /* =========================================
+  scrollList: {
+    paddingTop: 8,
+    paddingBottom: 40,
+  },
+
+  /* ==========================================================
      TITLE
-  ========================================= */
+  ========================================================== */
 
   title: {
     marginTop: 16,
@@ -154,12 +267,13 @@ const styles = StyleSheet.create({
     color: '#101828',
   },
 
-  /* =========================================
+  /* ==========================================================
      TABS
-  ========================================= */
+  ========================================================== */
 
   tabsContainer: {
     marginTop: 16,
+    height: 49,
     borderBottomWidth: 0.8,
     borderBottomColor: '#E4E7EC',
   },
@@ -190,13 +304,13 @@ const styles = StyleSheet.create({
   },
 
   activeTabText: {
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#101828',
   },
 
-  /* =========================================
-     BOOKING CARD
-  ========================================= */
+  /* ==========================================================
+     UPCOMING BOOKING CARD
+  ========================================================== */
 
   bookingCard: {
     flexDirection: 'row',
@@ -249,6 +363,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#356AE6',
   },
 
+  statusDotCompleted: {
+    backgroundColor: '#6F7280',
+  },
+
   statusText: {
     fontFamily: 'Manrope',
     fontSize: 12.5,
@@ -283,9 +401,130 @@ const styles = StyleSheet.create({
     color: '#101828',
   },
 
-  /* =========================================
+  /* ==========================================================
+     ACTIVE BOOKING CARD
+  ========================================================== */
+
+  activeCard: {
+    width: '100%',
+    height: 215,
+    marginTop: 16,
+    backgroundColor: '#101828',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+
+  /* ----------------------------------------------------------
+     Active status
+  ---------------------------------------------------------- */
+
+  activeHeader: {
+    height: 35,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+
+  activeStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  activeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: '#B8F23A',
+  },
+
+  activeStatusText: {
+    fontFamily: 'Manrope',
+    fontSize: 12.5,
+    lineHeight: 19,
+    fontWeight: '600',
+    letterSpacing: -0.16,
+    color: '#B8F23A',
+  },
+
+  /* ----------------------------------------------------------
+     Active vehicle
+  ---------------------------------------------------------- */
+
+  activeVehicleContainer: {
+    height: 112,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+
+  activeCarImage: {
+    width: 96,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: '#1D2939',
+  },
+
+  activeVehicleInfo: {
+    flex: 1,
+    height: 80,
+  },
+
+  activeCarName: {
+    fontFamily: 'Manrope',
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '600',
+    letterSpacing: -0.16,
+    color: '#FFFFFF',
+  },
+
+  activeInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+
+  activeInfoText: {
+    fontFamily: 'Manrope',
+    fontSize: 12.5,
+    lineHeight: 19,
+    fontWeight: '400',
+    letterSpacing: -0.16,
+    color: 'rgba(255,255,255,0.7)',
+  },
+
+  /* ----------------------------------------------------------
+     View Rental
+  ---------------------------------------------------------- */
+
+  activeButtonContainer: {
+    height: 68,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+
+  viewRentalButton: {
+    width: '100%',
+    height: 56,
+    backgroundColor: '#B8F23A',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  viewRentalText: {
+    fontFamily: 'Manrope',
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '600',
+    color: '#101828',
+  },
+
+  /* ==========================================================
      EMPTY STATES
-  ========================================= */
+  ========================================================== */
 
   emptyState: {
     marginTop: 80,

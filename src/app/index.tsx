@@ -1,3 +1,10 @@
 import HomeScreen from '@/screens/HomeScreen';
+import { BookingProvider } from '@/store/BookingContext';
 
-export default HomeScreen;
+export default function App() {
+  return (
+    <BookingProvider>
+      <HomeScreen />
+    </BookingProvider>
+  );
+}

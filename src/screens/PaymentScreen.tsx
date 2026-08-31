@@ -1,31 +1,35 @@
-﻿import { Feather } from '@expo/vector-icons';
+import { Booking } from '@/data/bookings';
+import { getCarById } from '@/data/cars';
+import { FinalizedBookingData } from '@/screens/ReviewBookingScreen';
+import { useBooking } from '@/store/BookingContext';
+import { Feather } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-
 import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import PaymentProcessing from '@/components/PaymentProcessing';
 
 interface PaymentScreenProps {
-  carName: string;
+  bookingData: FinalizedBookingData;
   onBack: () => void;
-  onPaymentSuccess: () => void;
+  onPaymentSuccess: (newBooking: Booking) => void;
 }
 
 type PaymentMethod = 'upi' | 'card' | 'netbanking';
 
 export default function PaymentScreen({
-  carName,
+  bookingData,
   onBack,
   onPaymentSuccess,
 }: PaymentScreenProps) {
+  const { createBooking } = useBooking();
+  const car = getCarById(bookingData.carId);
+
   const [selectedMethod, setSelectedMethod] =
     useState<PaymentMethod>('upi');
 
@@ -54,20 +58,39 @@ export default function PaymentScreen({
   ];
 
   /* =========================================
-     PAYMENT PROCESSING → SUCCESS
+     PAYMENT PROCESSING → SUCCESS & CREATION
   ========================================= */
 
   useEffect(() => {
     if (!isProcessing) return;
 
-    // Show the processing animation for 3 seconds
+    // Show the processing animation for 2.5 seconds
     const paymentTimer = setTimeout(() => {
       setIsProcessing(false);
-      onPaymentSuccess();
-    }, 3000);
+
+      const createdBooking = createBooking({
+        status: 'upcoming',
+        carId: bookingData.carId,
+        pickup: {
+          location: bookingData.location,
+          date: bookingData.pickupDate,
+          time: bookingData.pickupTime,
+        },
+        return: {
+          location: bookingData.location,
+          date: bookingData.returnDate,
+          time: bookingData.returnTime,
+        },
+        drivingOption: bookingData.drivingOption,
+        customer: bookingData.customer,
+        pricing: bookingData.pricing,
+      });
+
+      onPaymentSuccess(createdBooking);
+    }, 2500);
 
     return () => clearTimeout(paymentTimer);
-  }, [isProcessing, onPaymentSuccess]);
+  }, [isProcessing, bookingData, createBooking, onPaymentSuccess]);
 
   /* =========================================
      PAYMENT PROCESSING SCREEN
@@ -89,6 +112,8 @@ export default function PaymentScreen({
   /* =========================================
      PAYMENT SCREEN
   ========================================= */
+
+  const carDisplayName = car ? car.name : 'Selected Car';
 
   return (
     <SafeAreaView
@@ -122,13 +147,14 @@ export default function PaymentScreen({
           </Text>
 
           <Text style={styles.summaryPrice}>
-            ₹7,700
+            ₹{bookingData.pricing.paidToday.toLocaleString('en-IN')}
           </Text>
 
           <Text style={styles.summaryMeta}>
-            {carName} · 17 Aug–20 Aug · Self Drive
+            {carDisplayName} · {bookingData.pickupDate}–{bookingData.returnDate} · {bookingData.drivingOption}
           </Text>
         </View>
+
 
         {/* Payment Method */}
         <Text style={styles.sectionTitle}>
@@ -221,7 +247,7 @@ export default function PaymentScreen({
           }}
         >
           <Text style={styles.payButtonText}>
-            Pay ₹7,700
+            Pay ₹{bookingData.pricing.paidToday.toLocaleString('en-IN')}
           </Text>
 
           <Feather

@@ -1,5 +1,4 @@
 import BottomNav from '@/components/BottomNav';
-
 import CarCategories from '@/components/CarCategories';
 import HomeGreeting from '@/components/HomeGreeting';
 import HomeHeader from '@/components/HomeHeader';
@@ -10,16 +9,18 @@ import SearchCarCard from '@/components/SearchCarCard';
 import SearchCarsSheet, {
     SearchData,
 } from '@/components/SearchCarsSheet';
-
+import { Booking } from '@/data/bookings';
+import { CategoryType } from '@/data/cars';
 import AvailableCarsScreen from '@/screens/AvailableCarsScreen';
 import BookingDetailsScreen from '@/screens/BookingDetailsScreen';
 import BookingSuccessScreen from '@/screens/BookingSuccessScreen';
 import BookingsScreen from '@/screens/BookingsScreen';
-import CarDetailsScreen from '@/screens/CarDetailsScreen';
-// import ExploreScreen from '@/screens/ExploreScreen';
+import CarDetailsScreen, { BookingDraft } from '@/screens/CarDetailsScreen';
+import ExploreScreen from '@/screens/ExploreScreen';
 import PaymentScreen from '@/screens/PaymentScreen';
-import ReviewBookingScreen from '@/screens/ReviewBookingScreen';
-
+import ReviewBookingScreen, {
+    FinalizedBookingData,
+} from '@/screens/ReviewBookingScreen';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
@@ -29,94 +30,81 @@ export default function HomeScreen() {
   // ==========================================
   // MAIN TAB STATE
   // ==========================================
-
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
   // ==========================================
   // SEARCH STATES
   // ==========================================
-
-  const [isSearchSheetVisible, setIsSearchSheetVisible] =
-    useState(false);
-
+  const [isSearchSheetVisible, setIsSearchSheetVisible] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
   // ==========================================
   // BOOKING FLOW STATES
   // ==========================================
+  const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
+  const [bookingDraft, setBookingDraft] = useState<BookingDraft | null>(null);
+  const [finalBookingData, setFinalBookingData] =
+    useState<FinalizedBookingData | null>(null);
+  const [createdBooking, setCreatedBooking] = useState<Booking | null>(null);
 
-  const [isReviewBookingVisible, setIsReviewBookingVisible] =
-    useState(false);
-
-  const [isPaymentVisible, setIsPaymentVisible] =
-    useState(false);
-
+  const [isReviewBookingVisible, setIsReviewBookingVisible] = useState(false);
+  const [isPaymentVisible, setIsPaymentVisible] = useState(false);
   const [isBookingSuccessVisible, setIsBookingSuccessVisible] =
     useState(false);
-
   const [isBookingDetailsVisible, setIsBookingDetailsVisible] =
     useState(false);
-
-  // Stores the car being booked
-  const [selectedCarForBooking, setSelectedCarForBooking] =
-    useState<string | null>(null);
-
-  // Stores the car selected for viewing details
-  const [selectedCar, setSelectedCar] =
-    useState<string | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
+    null
+  );
 
   // ==========================================
   // SEARCH DATA
   // ==========================================
-
   const [searchData, setSearchData] = useState<SearchData>({
-    location: 'Guwahati',
+    location: 'Bikaner',
     dates: '17 Aug – 20 Aug',
     times: '10:00 AM – 10:00 AM',
     drivingOption: 'Self Drive',
   });
 
   // ==========================================
+  // POPULAR CARS STATE
+  // ==========================================
+  const [selectedPopularCategory, setSelectedPopularCategory] =
+    useState<CategoryType>('All');
+
+  // ==========================================
   // COMMON TAB NAVIGATION
   // ==========================================
-
   const handleTabChange = (tab: Tab) => {
-    // Close search results when switching tabs
     setHasSearched(false);
     setIsSearchSheetVisible(false);
-
     setActiveTab(tab);
   };
 
   // ==========================================
-  // BOOKING SUCCESS SCREEN
+  // 1. BOOKING SUCCESS SCREEN
   // ==========================================
-
-  if (isBookingSuccessVisible && selectedCarForBooking) {
+  if (isBookingSuccessVisible && createdBooking) {
     return (
       <BookingSuccessScreen
-        carName={selectedCarForBooking}
+        booking={createdBooking}
         onBackToHome={() => {
-          // Reset booking flow
           setIsBookingSuccessVisible(false);
-          setIsPaymentVisible(false);
-          setIsReviewBookingVisible(false);
-          setSelectedCarForBooking(null);
-          setSelectedCar(null);
+          setCreatedBooking(null);
+          setBookingDraft(null);
+          setFinalBookingData(null);
+          setSelectedCarId(null);
           setHasSearched(false);
-
-          // Go to Home
           setActiveTab('home');
         }}
         onViewBookings={() => {
-          // Close booking success screen
           setIsBookingSuccessVisible(false);
-          setIsPaymentVisible(false);
-          setIsReviewBookingVisible(false);
-          setSelectedCar(null);
+          setCreatedBooking(null);
+          setBookingDraft(null);
+          setFinalBookingData(null);
+          setSelectedCarId(null);
           setHasSearched(false);
-
-          // Navigate to Bookings screen
           setActiveTab('bookings');
         }}
       />
@@ -124,20 +112,18 @@ export default function HomeScreen() {
   }
 
   // ==========================================
-  // PAYMENT SCREEN
+  // 2. PAYMENT SCREEN
   // ==========================================
-
-  if (isPaymentVisible && selectedCarForBooking) {
+  if (isPaymentVisible && finalBookingData) {
     return (
       <PaymentScreen
-        carName={selectedCarForBooking}
+        bookingData={finalBookingData}
         onBack={() => {
           setIsPaymentVisible(false);
           setIsReviewBookingVisible(true);
         }}
-        onPaymentSuccess={() => {
-          console.log('Payment successful');
-
+        onPaymentSuccess={(newBooking) => {
+          setCreatedBooking(newBooking);
           setIsPaymentVisible(false);
           setIsBookingSuccessVisible(true);
         }}
@@ -146,18 +132,18 @@ export default function HomeScreen() {
   }
 
   // ==========================================
-  // REVIEW BOOKING SCREEN
+  // 3. REVIEW BOOKING SCREEN
   // ==========================================
-
-  if (isReviewBookingVisible && selectedCarForBooking) {
+  if (isReviewBookingVisible && bookingDraft) {
     return (
       <ReviewBookingScreen
-        carName={selectedCarForBooking}
+        bookingDraft={bookingDraft}
         onBack={() => {
           setIsReviewBookingVisible(false);
-          setSelectedCarForBooking(null);
+          setSelectedCarId(bookingDraft.carId);
         }}
-        onContinue={() => {
+        onContinue={(finalData) => {
+          setFinalBookingData(finalData);
           setIsReviewBookingVisible(false);
           setIsPaymentVisible(true);
         }}
@@ -166,17 +152,17 @@ export default function HomeScreen() {
   }
 
   // ==========================================
-  // CAR DETAILS SCREEN
+  // 4. CAR DETAILS SCREEN
   // ==========================================
-
-  if (selectedCar) {
+  if (selectedCarId) {
     return (
       <CarDetailsScreen
-        carName={selectedCar}
-        onBack={() => setSelectedCar(null)}
-        onConfirmBooking={() => {
-          setSelectedCarForBooking(selectedCar);
-          setSelectedCar(null);
+        carId={selectedCarId}
+        searchData={searchData}
+        onBack={() => setSelectedCarId(null)}
+        onConfirmBooking={(draft) => {
+          setBookingDraft(draft);
+          setSelectedCarId(null);
           setIsReviewBookingVisible(true);
         }}
       />
@@ -184,30 +170,30 @@ export default function HomeScreen() {
   }
 
   // ==========================================
-  // BOOKING DETAILS SCREEN
+  // 5. BOOKING DETAILS SCREEN
   // ==========================================
-
   if (isBookingDetailsVisible) {
     return (
       <BookingDetailsScreen
-        onBack={() => setIsBookingDetailsVisible(false)}
+        bookingId={selectedBookingId || undefined}
+        onBack={() => {
+          setIsBookingDetailsVisible(false);
+          setSelectedBookingId(null);
+        }}
       />
     );
   }
 
   // ==========================================
-  // AVAILABLE CARS SCREEN
+  // 6. AVAILABLE CARS SCREEN (SEARCH RESULTS)
   // ==========================================
-
   if (hasSearched) {
     return (
       <View style={styles.resultsContainer}>
         <AvailableCarsScreen
           searchData={searchData}
           onEdit={() => setIsSearchSheetVisible(true)}
-          onViewCarDetails={(carName: string) =>
-            setSelectedCar(carName)
-          }
+          onViewCarDetails={(carId: string) => setSelectedCarId(carId)}
         />
 
         <SearchCarsSheet
@@ -229,16 +215,16 @@ export default function HomeScreen() {
   }
 
   // ==========================================
-  // BOOKINGS TAB
+  // 7. BOOKINGS TAB
   // ==========================================
-
   if (activeTab === 'bookings') {
     return (
       <View style={styles.tabContainer}>
         <BookingsScreen
-          onViewBookingDetails={() =>
-            setIsBookingDetailsVisible(true)
-          }
+          onViewBookingDetails={(bookingId) => {
+            setSelectedBookingId(bookingId || null);
+            setIsBookingDetailsVisible(true);
+          }}
         />
 
         <BottomNav
@@ -250,13 +236,14 @@ export default function HomeScreen() {
   }
 
   // ==========================================
-  // EXPLORE TAB
+  // 8. EXPLORE TAB
   // ==========================================
-
   if (activeTab === 'explore') {
     return (
       <View style={styles.tabContainer}>
-        {/* <ExploreScreen /> */}
+        <ExploreScreen
+          onSelectCar={(carId) => setSelectedCarId(carId)}
+        />
 
         <BottomNav
           activeTab={activeTab}
@@ -267,9 +254,8 @@ export default function HomeScreen() {
   }
 
   // ==========================================
-  // HOME SCREEN
+  // 9. HOME TAB
   // ==========================================
-
   return (
     <View style={styles.container}>
       <ScrollView
@@ -288,18 +274,29 @@ export default function HomeScreen() {
           onPress={() => setIsSearchSheetVisible(true)}
         />
 
-        <NextTripCard />
+        <NextTripCard
+          onPress={() => {
+            setSelectedBookingId(null); // will open upcoming trip
+            setIsBookingDetailsVisible(true);
+          }}
+        />
 
         <View style={styles.popularHeaderSection}>
           <PopularCarsHeader />
         </View>
 
         <View style={styles.categoriesSection}>
-          <CarCategories />
+          <CarCategories
+            selectedCategory={selectedPopularCategory}
+            onCategoryChange={setSelectedPopularCategory}
+          />
         </View>
 
         <View style={styles.carsSection}>
-          <PopularCars />
+          <PopularCars
+            selectedCategory={selectedPopularCategory}
+            onSelectCar={(carId) => setSelectedCarId(carId)}
+          />
         </View>
       </ScrollView>
 
@@ -352,4 +349,4 @@ const styles = StyleSheet.create({
   carsSection: {
     marginTop: 16,
   },
-});
+});

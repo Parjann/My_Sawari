@@ -1,3 +1,4 @@
+import { Car } from '@/data/cars';
 import { Feather } from '@expo/vector-icons';
 import {
     Pressable,
@@ -7,19 +8,37 @@ import {
 } from 'react-native';
 
 interface CarDetailsContentProps {
-  carName?: string;
-  rating?: string;
-  trips?: number;
+  car: Car;
+  drivingOption: 'Self Drive' | 'With Driver';
+  onDrivingOptionChange: (option: 'Self Drive' | 'With Driver') => void;
+  location?: string;
+  pickupDate?: string;
+  returnDate?: string;
+  days?: number;
+  rentalPrice: number;
+  additionalCharges: number;
+  discount: number;
+  securityDeposit: number;
+  totalPrice: number;
 }
 
 export default function CarDetailsContent({
-  carName = 'Hyundai Creta',
-  rating = '4.8',
-  trips = 214,
+  car,
+  drivingOption,
+  onDrivingOptionChange,
+  location = 'Bikaner',
+  pickupDate = '17 Aug',
+  returnDate = '20 Aug',
+  days = 3,
+  rentalPrice,
+  additionalCharges,
+  discount,
+  securityDeposit,
+  totalPrice,
 }: CarDetailsContentProps) {
   const features = [
-    ['Sunroof', 'Bluetooth'],
-    ['Rear camera', 'Cruise control'],
+    ['Sunroof', 'Bluetooth', 'Touchscreen Infotainment'],
+    ['Rear camera', 'Cruise control', 'Power steering'],
   ];
 
   return (
@@ -27,26 +46,33 @@ export default function CarDetailsContent({
       {/* ================= HEADER ================= */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.carName}>{carName}</Text>
+          <Text style={styles.carName}>{car.name}</Text>
 
           <View style={styles.ratingRow}>
             <Feather name="star" size={16} color="#101828" />
-            <Text style={styles.rating}>{rating}</Text>
-            <Text style={styles.trips}>· {trips} trips</Text>
+            <Text style={styles.rating}>{car.rating ?? 4.8}</Text>
+            <Text style={styles.trips}>· {car.trips ?? 214} trips</Text>
           </View>
         </View>
 
         <View style={styles.availableBadge}>
-          <View style={styles.statusDot} />
-          <Text style={styles.availableText}>Available</Text>
+          <View
+            style={[
+              styles.statusDot,
+              !car.available && styles.statusDotUnavailable,
+            ]}
+          />
+          <Text style={styles.availableText}>
+            {car.available ? 'Available' : 'Booked'}
+          </Text>
         </View>
       </View>
 
       {/* ================= CAR SPECS ================= */}
       <View style={styles.specsRow}>
-        <SpecCard icon="users" label="5 seats" />
-        <SpecCard icon="activity" label="Automatic" />
-        <SpecCard icon="droplet" label="Petrol" />
+        <SpecCard icon="users" label={`${car.seats} seats`} />
+        <SpecCard icon="activity" label={car.transmission} />
+        <SpecCard icon="droplet" label={car.fuel} />
       </View>
 
       {/* ================= DRIVING OPTION ================= */}
@@ -57,13 +83,16 @@ export default function CarDetailsContent({
           icon="circle"
           title="Self Drive"
           subtitle="No driver charges"
-          selected
+          selected={drivingOption === 'Self Drive'}
+          onPress={() => onDrivingOptionChange('Self Drive')}
         />
 
         <DrivingCard
           icon="user"
           title="With Driver"
           subtitle="₹800/day"
+          selected={drivingOption === 'With Driver'}
+          onPress={() => onDrivingOptionChange('With Driver')}
         />
       </View>
 
@@ -87,21 +116,36 @@ export default function CarDetailsContent({
       <SectionTitle title="Rental information" />
 
       <View style={styles.infoCard}>
-        <InfoRow label="Pickup" value="Bikaner, 10:00 AM" />
-        <InfoRow label="Duration" value="17–28 Aug · 11 days" />
-        <InfoRow label="Return" value="Bikaner, 10:00 AM" last />
+        <InfoRow label="Pickup" value={`${location}, 10:00 AM`} />
+        <InfoRow
+          label="Duration"
+          value={`${pickupDate}–${returnDate} · ${days} ${days === 1 ? 'day' : 'days'}`}
+        />
+        <InfoRow label="Return" value={`${location}, 10:00 AM`} last />
       </View>
 
       {/* ================= PRICE DETAILS ================= */}
       <SectionTitle title="Price details" />
 
       <View style={styles.priceContainer}>
-        <PriceRow label="Vehicle rental · 11 days" value="₹7,500" />
-        <PriceRow label="Additional charges" value="₹500" />
-        <PriceRow label="Discount" value="−₹300" discount />
+        <PriceRow
+          label={`Vehicle rental · ${days} ${days === 1 ? 'day' : 'days'}`}
+          value={`₹${rentalPrice.toLocaleString('en-IN')}`}
+        />
+        <PriceRow
+          label="Additional charges"
+          value={`₹${additionalCharges.toLocaleString('en-IN')}`}
+        />
+        {discount > 0 && (
+          <PriceRow
+            label="Discount"
+            value={`−₹${discount.toLocaleString('en-IN')}`}
+            discount
+          />
+        )}
         <PriceRow
           label="Security deposit (refundable)"
-          value="₹2,000"
+          value={`₹${securityDeposit.toLocaleString('en-IN')}`}
           muted
         />
       </View>
@@ -109,7 +153,9 @@ export default function CarDetailsContent({
       {/* ================= TOTAL ================= */}
       <View style={styles.totalContainer}>
         <Text style={styles.payToday}>Pay today</Text>
-        <Text style={styles.totalPrice}>₹7,700</Text>
+        <Text style={styles.totalPrice}>
+          ₹{totalPrice.toLocaleString('en-IN')}
+        </Text>
       </View>
 
       <Text style={styles.note}>
@@ -119,6 +165,7 @@ export default function CarDetailsContent({
     </View>
   );
 }
+
 
 /* ======================================================
    REUSABLE SMALL COMPONENTS
@@ -144,11 +191,13 @@ function DrivingCard({
   title,
   subtitle,
   selected = false,
+  onPress,
 }: {
   icon: keyof typeof Feather.glyphMap;
   title: string;
   subtitle: string;
   selected?: boolean;
+  onPress?: () => void;
 }) {
   return (
     <Pressable
@@ -156,6 +205,7 @@ function DrivingCard({
         styles.drivingCard,
         selected && styles.drivingCardSelected,
       ]}
+      onPress={onPress}
     >
       <View style={styles.drivingTop}>
         <Feather name={icon} size={20} color="#101828" />
@@ -290,6 +340,10 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 999,
     backgroundColor: '#2E9B62',
+  },
+
+  statusDotUnavailable: {
+    backgroundColor: '#98A2B3',
   },
 
   availableText: {

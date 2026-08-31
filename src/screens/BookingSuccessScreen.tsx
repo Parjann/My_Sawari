@@ -1,5 +1,6 @@
+import { Booking } from '@/data/bookings';
+import { getCarById } from '@/data/cars';
 import { Feather } from '@expo/vector-icons';
-
 import {
     Image,
     Pressable,
@@ -7,24 +8,22 @@ import {
     Text,
     View,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface BookingSuccessScreenProps {
-  carName: string;
+  booking: Booking;
   onBackToHome: () => void;
   onViewBookings: () => void;
 }
 
 export default function BookingSuccessScreen({
-  carName,
+  booking,
   onBackToHome,
   onViewBookings,
 }: BookingSuccessScreenProps) {
-  const carImage =
-    carName === 'Hyundai Creta'
-      ? require('@/assets/images/cars/verna.png')
-      : require('@/assets/images/cars/ford.png');
+  const car = getCarById(booking.carId);
+  const carName = car ? car.name : 'Selected Car';
+  const carImage = car ? car.image : require('@/assets/images/cars/verna.png');
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -55,7 +54,7 @@ export default function BookingSuccessScreen({
             </Text>
 
             <Text style={styles.referenceNumber}>
-              MS-6816
+              {booking.id}
             </Text>
           </View>
 
@@ -75,7 +74,7 @@ export default function BookingSuccessScreen({
               </Text>
 
               <Text style={styles.driveType}>
-                Self Drive
+                {booking.drivingOption}
               </Text>
             </View>
           </View>
@@ -90,7 +89,7 @@ export default function BookingSuccessScreen({
               />
 
               <Text style={styles.detailText}>
-                Bikaner
+                {booking.pickup.location}
               </Text>
             </View>
 
@@ -102,7 +101,7 @@ export default function BookingSuccessScreen({
               />
 
               <Text style={styles.detailText}>
-                17 Aug — 20 Aug · 3 days
+                {booking.pickup.date} — {booking.return.date}
               </Text>
             </View>
 
@@ -114,7 +113,7 @@ export default function BookingSuccessScreen({
               />
 
               <Text style={styles.detailText}>
-                10:00 AM — 10:00 AM
+                {booking.pickup.time} — {booking.return.time}
               </Text>
             </View>
           </View>
@@ -128,7 +127,7 @@ export default function BookingSuccessScreen({
             </Text>
 
             <Text style={styles.paidAmount}>
-              ₹7,700
+              ₹{booking.pricing.paidToday.toLocaleString('en-IN')}
             </Text>
           </View>
         </View>
@@ -157,6 +156,7 @@ export default function BookingSuccessScreen({
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

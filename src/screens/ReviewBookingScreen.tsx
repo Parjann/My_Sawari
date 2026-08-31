@@ -1,4 +1,8 @@
+import { CustomerDetails } from '@/data/bookings';
+import { getCarById } from '@/data/cars';
+import { BookingDraft } from '@/screens/CarDetailsScreen';
 import { Feather } from '@expo/vector-icons';
+import { useState } from 'react';
 import {
     Image,
     Pressable,
@@ -10,21 +14,36 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+export interface FinalizedBookingData extends BookingDraft {
+  customer: CustomerDetails;
+}
+
 interface ReviewBookingScreenProps {
-  carName: string;
+  bookingDraft: BookingDraft;
   onBack: () => void;
-  onContinue: () => void;
+  onContinue: (finalData: FinalizedBookingData) => void;
 }
 
 export default function ReviewBookingScreen({
-  carName,
+  bookingDraft,
   onBack,
   onContinue,
 }: ReviewBookingScreenProps) {
-  const carImage =
-    carName === 'Hyundai Creta'
-      ? require('@/assets/images/cars/verna.png')
-      : require('@/assets/images/cars/ford.png');
+  const car = getCarById(bookingDraft.carId);
+
+  const [customer, setCustomer] = useState<CustomerDetails>({
+    fullName: 'Jatin Prajapat',
+    mobile: '1234565433',
+    email: 'jatinprajapat682@gmail.com',
+    drivingLicence: 'RJ0620230001234',
+  });
+
+  const handleContinue = () => {
+    onContinue({
+      ...bookingDraft,
+      customer,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -45,23 +64,27 @@ export default function ReviewBookingScreen({
         </View>
 
         {/* Car Summary */}
-        <View style={styles.carCard}>
-          <Image
-            source={carImage}
-            style={styles.carImage}
-            resizeMode="cover"
-          />
+        {car && (
+          <View style={styles.carCard}>
+            <Image
+              source={car.image}
+              style={styles.carImage}
+              resizeMode="cover"
+            />
 
-          <View style={styles.carInfo}>
-            <Text style={styles.carName}>{carName}</Text>
+            <View style={styles.carInfo}>
+              <Text style={styles.carName}>{car.name}</Text>
 
-            <Text style={styles.carDetails}>
-              SUV · 5 seats · Automatic
-            </Text>
+              <Text style={styles.carDetails}>
+                {car.category} · {car.seats} seats · {car.transmission}
+              </Text>
 
-            <Text style={styles.selfDrive}>Self Drive</Text>
+              <Text style={styles.selfDrive}>
+                {bookingDraft.drivingOption}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Trip Details */}
         <View style={styles.tripSection}>
@@ -71,25 +94,29 @@ export default function ReviewBookingScreen({
             <DetailRow
               icon="map-pin"
               label="Pickup"
-              value="Bikaner"
+              value={bookingDraft.location}
             />
 
             <DetailRow
               icon="calendar"
               label="Dates"
-              value="17 Aug — 20 Aug · 3 days"
+              value={`${bookingDraft.pickupDate} — ${bookingDraft.returnDate} · ${bookingDraft.days} days`}
             />
 
             <DetailRow
               icon="clock"
               label="Time"
-              value="10:00 AM — 10:00 AM"
+              value={`${bookingDraft.pickupTime} — ${bookingDraft.returnTime}`}
             />
 
             <DetailRow
               icon="user"
               label="Driving option"
-              value="Self Drive · No driver charges"
+              value={
+                bookingDraft.drivingOption === 'Self Drive'
+                  ? 'Self Drive · No driver charges'
+                  : 'With Driver · Driver charges included'
+              }
               isLast
             />
           </View>
@@ -102,24 +129,38 @@ export default function ReviewBookingScreen({
           <View style={styles.form}>
             <InputField
               label="Full name"
-              value="Jatin Prajapat"
+              value={customer.fullName}
+              onChangeText={(text) =>
+                setCustomer((prev) => ({ ...prev, fullName: text }))
+              }
             />
 
             <InputField
               label="Mobile number"
+              value={customer.mobile}
               placeholder="10-digit mobile number"
               keyboardType="phone-pad"
+              onChangeText={(text) =>
+                setCustomer((prev) => ({ ...prev, mobile: text }))
+              }
             />
 
             <InputField
               label="Email"
-              value="jatinprajapat682@gmail.com"
+              value={customer.email}
               keyboardType="email-address"
+              onChangeText={(text) =>
+                setCustomer((prev) => ({ ...prev, email: text }))
+              }
             />
 
             <InputField
               label="Driving licence number"
+              value={customer.drivingLicence}
               placeholder="e.g. RJ0620230001234"
+              onChangeText={(text) =>
+                setCustomer((prev) => ({ ...prev, drivingLicence: text }))
+              }
             />
           </View>
         </View>
@@ -131,24 +172,26 @@ export default function ReviewBookingScreen({
           <View style={styles.priceRows}>
             <PriceRow
               label="Vehicle rental"
-              value="₹7,500"
+              value={`₹${bookingDraft.pricing.rental.toLocaleString('en-IN')}`}
               first
             />
 
             <PriceRow
               label="Additional charges"
-              value="₹500"
+              value={`₹${bookingDraft.pricing.additionalCharges.toLocaleString('en-IN')}`}
             />
 
-            <PriceRow
-              label="Discount"
-              value="− ₹300"
-              valueStyle={styles.discount}
-            />
+            {bookingDraft.pricing.discount > 0 && (
+              <PriceRow
+                label="Discount"
+                value={`− ₹${bookingDraft.pricing.discount.toLocaleString('en-IN')}`}
+                valueStyle={styles.discount}
+              />
+            )}
 
             <PriceRow
               label="Security deposit (refundable)"
-              value="₹2,000"
+              value={`₹${bookingDraft.pricing.securityDeposit.toLocaleString('en-IN')}`}
               labelStyle={styles.mutedText}
               valueStyle={styles.mutedText}
             />
@@ -164,13 +207,14 @@ export default function ReviewBookingScreen({
 
         <View style={styles.payTodayRow}>
           <Text style={styles.payTodayLabel}>Pay today</Text>
-          <Text style={styles.payTodayPrice}>₹7,700</Text>
+          <Text style={styles.payTodayPrice}>
+            ₹{bookingDraft.pricing.paidToday.toLocaleString('en-IN')}
+          </Text>
         </View>
 
-        {/* This triggers navigation to the Payment screen */}
         <Pressable
           style={styles.continueButton}
-          onPress={onContinue}
+          onPress={handleContinue}
         >
           <Text style={styles.continueText}>
             Continue to payment
@@ -186,6 +230,7 @@ export default function ReviewBookingScreen({
     </SafeAreaView>
   );
 }
+
 
 /* =========================================
    TRIP DETAIL ROW
@@ -236,11 +281,13 @@ function InputField({
   value,
   placeholder,
   keyboardType = 'default',
+  onChangeText,
 }: {
   label: string;
   value?: string;
   placeholder?: string;
   keyboardType?: any;
+  onChangeText?: (text: string) => void;
 }) {
   return (
     <View style={styles.inputGroup}>
@@ -249,6 +296,7 @@ function InputField({
       <TextInput
         style={styles.input}
         value={value}
+        onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor="#6F7280"
         keyboardType={keyboardType}
