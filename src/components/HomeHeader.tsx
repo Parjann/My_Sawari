@@ -1,7 +1,7 @@
 import NotificationsSheet from '@/components/NotificationsSheet';
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeHeader() {
@@ -11,7 +11,13 @@ export default function HomeHeader() {
   return (
     <>
       <View style={[styles.container, { marginTop: insets.top + 12 }]}>
-        <Text style={styles.logo}>My Sawari</Text>
+        <View style={styles.brandRow}>
+          <Image
+            source={require('@/assets/images/app-logo.png')}
+            style={styles.logoIcon}
+          />
+          <Text style={styles.logo}>My Sawari</Text>
+        </View>
 
         <Pressable
           style={styles.notificationButton}
@@ -36,6 +42,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  logoIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
   },
 
   logo: {
